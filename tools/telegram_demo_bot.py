@@ -111,6 +111,9 @@ def reply_to_start(call, update, username, app_url):
     author = message.get("from", {})
     if chat.get("type") != "private" or not author.get("id"):
         return
+    from voice_notes import handle_voice
+    if handle_voice(call, message, app_url):
+        return
     text = message.get("text", "").strip()
     chat_id = chat["id"]
     def say(body, markup=None):

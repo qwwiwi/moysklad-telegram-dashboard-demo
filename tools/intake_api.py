@@ -262,7 +262,7 @@ class JournalHandler(BaseHTTPRequestHandler):
                     record_id = payload.get("id")
                     if type(record_id) is not int:
                         raise ValueError("Invalid record")
-                    row = db.execute("SELECT filename,storage_path,user_id FROM journal WHERE id=? AND kind='file'", (record_id,)).fetchone()
+                    row = db.execute("SELECT filename,storage_path,user_id FROM journal WHERE id=? AND kind IN ('file','voice')", (record_id,)).fetchone()
                 if row is None:
                     self.respond(404, {"error": "File not found"})
                     return
@@ -291,7 +291,7 @@ class JournalHandler(BaseHTTPRequestHandler):
                 if type(record_id) is not int or record_id <= 0:
                     raise ValueError("Invalid file")
                 with sqlite3.connect(db_path) as db:
-                    row = db.execute("SELECT user_id,filename,storage_path FROM journal WHERE id=? AND kind='file'", (record_id,)).fetchone()
+                    row = db.execute("SELECT user_id,filename,storage_path FROM journal WHERE id=? AND kind IN ('file','voice')", (record_id,)).fetchone()
                 if row is None or (row[0] != user_id and user_id not in self.server.owner_ids):
                     self.respond(404, {"error": "File not found"})
                     return
@@ -301,6 +301,9 @@ class JournalHandler(BaseHTTPRequestHandler):
                     self.respond(404, {"error": "File unavailable"})
                     return
                 if self.path.endswith("/preview"):
+                    if path.suffix.lower() in {".ogg",".mp3",".m4a",".wav"}:
+                        self.respond(200, {"summary":"Голосовое пояснение. Расшифровка отображается в журнале.","columns":[],"rows":[],"size":path.stat().st_size})
+                        return
                     from document_preview import summarize
                     result = summarize(path, row[1])
                     result["size"] = path.stat().st_size
@@ -336,6 +339,12 @@ class JournalHandler(BaseHTTPRequestHandler):
                 self.respond(200, {"user_id": person_id, "name": name.strip()})
                 return
             result = read_journal(self.server.db_path, user_id, user_id in self.server.owner_ids)
+            with sqlite3.connect(db_path) as db:
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='journal_links'").fetchone():
+                    links=dict(db.execute("SELECT child_id,parent_id FROM journal_links"))
+                    for entry in result["entries"]:
+                        entry["parent_record_id"]=links.get(entry["id"])
+
             self.respond(200, result)
         except AuthenticationError:
             self.respond(401, {"error": "Open the journal from Telegram"})

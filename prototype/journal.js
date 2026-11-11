@@ -38,15 +38,16 @@
       }
       for(const entry of data.entries){
         const card=node("article","");card.dataset.user=String(entry.user_id);card.dataset.record=String(entry.id);card.dataset.filename=entry.filename||"";
-        card.append(node("strong",entry.filename||"Текстовое сообщение"));
+        card.append(node("strong",entry.kind==="voice"?"Голосовое пояснение":entry.filename||"Текстовое сообщение"));
         card.append(node("p",(labels[entry.role]||entry.role)+" · "+(entry.alias||entry.display_name)));
         card.append(node("p","Telegram ID · "+entry.user_id));
         if(entry.alias&&entry.display_name)card.append(node("p","Имя при загрузке · "+entry.display_name));
         const date=new Date(entry.received_at);
-        card.append(node("small",date.toLocaleString("ru-RU")+" · "+({posted:"Проведено в МоёмСкладе",needs_review:"Требует уточнения",received:"Получено"}[entry.status]||entry.status)));
+        card.append(node("small",date.toLocaleString("ru-RU")+" · "+({posted:"Проведено в МоёмСкладе",needs_review:"Требует уточнения",received:"Получено",transcribing:"Распознаём речь",transcription_failed:"Не удалось распознать речь"}[entry.status]||entry.status)));
         if(entry.origin)card.append(node("p","Источник · "+entry.origin));
+        if(entry.parent_record_id)card.append(node("p","Пояснение к документу №"+entry.parent_record_id));
         if(entry.text)card.append(node("p",entry.text));
-        if(entry.kind==="file"){
+        if(entry.kind==="file"||entry.kind==="voice"){
           const actions=node("div","");actions.className="file-actions";
           const preview=node("button","Посмотреть и получить резюме"),download=node("button","Скачать оригинал");
           preview.type=download.type="button";actions.append(preview,download);card.append(actions);
