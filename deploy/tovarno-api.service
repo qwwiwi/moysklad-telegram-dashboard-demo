@@ -1,0 +1,18 @@
+[Unit]
+Description=TOVARNO private intake journal API
+After=network-online.target
+[Service]
+User=tovarno
+Group=tovarno
+EnvironmentFile=/etc/tovarno/bot.env
+Environment=INTAKE_DB=/var/lib/tovarno/intake.sqlite3
+ExecStart=/usr/bin/python3 /opt/tovarno/intake_api.py
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/tovarno
+PrivateTmp=yes
+[Install]
+WantedBy=multi-user.target

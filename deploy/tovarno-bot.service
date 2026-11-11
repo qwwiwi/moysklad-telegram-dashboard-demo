@@ -4,7 +4,11 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-DynamicUser=yes
+User=tovarno
+Group=tovarno
+Environment=INTAKE_DB=/var/lib/tovarno/intake.sqlite3
+Environment=INTAKE_UPLOAD_DIR=/var/lib/tovarno/uploads
+ReadWritePaths=/var/lib/tovarno
 Environment=PUBLIC_URL=https://app.moyskladdemo.xyz/
 EnvironmentFile=/etc/tovarno/bot.env
 ExecStart=/usr/bin/python3 /opt/tovarno/telegram_demo_bot.py
