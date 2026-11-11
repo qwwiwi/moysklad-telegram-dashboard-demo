@@ -65,7 +65,7 @@ def create_client(token):
 
 def main_buttons(app_url):
     return {"inline_keyboard": [
-        [{"text": "Открыть ТОВАРНО", "web_app": {"url": app_url}}],
+        [{"text": "Открыть ТОВАРНО", "style": "success", "web_app": {"url": app_url}}],
         [{"text": "Загрузить документы", "callback_data": "upload"}],
         [{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}],
     ]}
@@ -106,7 +106,7 @@ def reply_to_start(call, update, username, app_url):
             call("sendMessage", chat_id=chat_id, text="ТОВАРНО — товары, финансы и документы.",
                  reply_markup={"keyboard": [[{"text": "Старт"}]], "resize_keyboard": True, "is_persistent": True})
         call("sendPhoto", chat_id=chat_id,
-             photo=app_url.rstrip("/") + "/assets/tovarno-welcome-1080.jpg",
+             photo=app_url.rstrip("/") + "/assets/tovarno-iphone-1080.jpg",
              caption="Ваш личный кабинет ТОВАРНО. Откройте панель, загрузите документы или посмотрите историю отправок.",
              reply_markup=main_buttons(app_url))
         return
