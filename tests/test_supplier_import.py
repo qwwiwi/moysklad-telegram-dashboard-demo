@@ -1,4 +1,6 @@
 import tempfile
+import sqlite3
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -55,6 +57,46 @@ class SupplierImportTest(unittest.TestCase):
             self.path.write_text(self.path.read_text().replace(",2,100,150", ",3,100,150"))
             with self.assertRaises(SeedError):
                 importer.import_file(self.path, self.path.name, execute=True)
+            self.assertEqual(client.writes, writes)
+
+    def test_supplier_orders_are_isolated_and_retries_do_not_write(self):
+        client = FakeClient()
+        with patch.object(importer, "_client", return_value=client), patch.dict("os.environ", {"INTAKE_UPLOAD_DIR": self.tmp.name, "INTAKE_DB": self.tmp.name + "/intake.db"}):
+            first = importer.import_file(self.path, self.path.name, execute=True, supplier_id="101")
+            second = importer.import_file(self.path, self.path.name, execute=True, supplier_id="202")
+            self.assertEqual(len(client.data["supply"]), 2)
+            self.assertEqual(len(client.data["demand"]), 2)
+            self.assertNotEqual(client.data["supply"][0]["agent"], client.data["supply"][1]["agent"])
+            self.assertNotEqual(first["documents"][0]["href"], second["documents"][0]["href"])
+            writes = client.writes
+            for supplier in ("101", "202"):
+                importer.import_file(self.path, self.path.name, execute=True, supplier_id=supplier)
+            self.assertEqual(client.writes, writes)
+
+    def test_legacy_order_requires_migration_before_scoped_import(self):
+        client = FakeClient()
+        with patch.object(importer, "_client", return_value=client), patch.dict("os.environ", {"INTAKE_UPLOAD_DIR": self.tmp.name, "INTAKE_DB": self.tmp.name + "/intake.db"}):
+            importer.import_file(self.path, self.path.name, execute=True)
+            writes = client.writes
+            with self.assertRaisesRegex(SeedError, "старого формата"):
+                importer.import_file(self.path, self.path.name, execute=True, supplier_id="101")
+            self.assertEqual(client.writes, writes)
+
+    def test_completed_legacy_journal_retry_uses_stored_result(self):
+        client = FakeClient()
+        db_path = self.tmp.name + "/intake.db"
+        with patch.object(importer, "_client", return_value=client), patch.dict("os.environ", {"INTAKE_UPLOAD_DIR": self.tmp.name, "INTAKE_DB": db_path}):
+            first = importer.import_file(self.path, self.path.name, execute=True)
+            with sqlite3.connect(db_path) as db:
+                db.execute("CREATE TABLE import_results(journal_id INTEGER PRIMARY KEY,result TEXT NOT NULL)")
+                db.execute("INSERT INTO import_results VALUES(?,?)", (7, json.dumps(first)))
+            writes = client.writes
+            retry = importer.import_file(self.path, self.path.name, execute=True, journal_id=7, supplier_id="101")
+            self.assertEqual(retry, first)
+            self.assertEqual(client.writes, writes)
+            self.path.write_text(self.path.read_text().replace(",2,100,150", ",3,100,150"))
+            with self.assertRaisesRegex(SeedError, "изменилось"):
+                importer.import_file(self.path, self.path.name, execute=True, journal_id=7, supplier_id="101")
             self.assertEqual(client.writes, writes)
 
     def test_explicit_name_mapping_only(self):
