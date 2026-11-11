@@ -40,12 +40,44 @@
         const card=node("article","");card.dataset.user=String(entry.user_id);
         card.append(node("strong",entry.filename||"Текстовое сообщение"));
         card.append(node("p",(labels[entry.role]||entry.role)+" · "+(entry.alias||entry.display_name)));
-        card.append(node("small","Telegram ID · "+entry.user_id));
+        card.append(node("p","Telegram ID · "+entry.user_id));
         if(entry.alias&&entry.display_name)card.append(node("p","Имя при загрузке · "+entry.display_name));
         const date=new Date(entry.received_at);
         card.append(node("small",date.toLocaleString("ru-RU")+" · Получено"));
         if(entry.origin)card.append(node("p","Источник · "+entry.origin));
         if(entry.text)card.append(node("p",entry.text));
+        if(entry.kind==="file"){
+          const actions=node("div","");actions.className="file-actions";
+          const preview=node("button","Посмотреть и получить резюме"),download=node("button","Скачать оригинал");
+          preview.type=download.type="button";actions.append(preview,download);card.append(actions);
+          const output=node("div","");card.append(output);
+          const post=path=>fetch(path,{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,...(initData?{initData}:{})})});
+          preview.onclick=async()=>{
+            preview.disabled=true;output.replaceChildren(node("p","Читаем таблицу…"));
+            try{
+              const response=await post("/api/file/preview");if(!response.ok)throw Error();
+              const document=await response.json();output.replaceChildren(node("p",document.summary));
+              output.append(node("small","Размер · "+(document.size/1024).toLocaleString("ru-RU",{maximumFractionDigits:1})+" КБ"));
+              for(const warning of document.warnings||[])output.append(node("p",warning));
+              if(document.columns?.length){
+                const details=node("details",""),wrapper=node("div",""),table=node("table",""),head=node("tr","");
+                wrapper.className="file-table";details.append(node("summary","Предпросмотр · первые "+document.rows.length+" строк"));
+                for(const col of document.columns)head.append(node("th",col));table.append(head);
+                for(const row of document.rows){const tr=node("tr","");for(const cell of row)tr.append(node("td",String(cell??"")));table.append(tr)}
+                wrapper.append(table);details.append(wrapper);output.append(details);
+              }
+            }catch{output.replaceChildren(node("p","Не удалось прочитать файл. Можно скачать оригинал и открыть его локально."))}
+            finally{preview.disabled=false}
+          };
+          download.onclick=async()=>{
+            download.disabled=true;download.textContent="Скачиваем…";
+            try{
+              const response=await post("/api/file/download");if(!response.ok)throw Error();
+              const url=URL.createObjectURL(await response.blob()),a=node("a","");a.href=url;a.download=entry.filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+            }catch{output.append(node("p","Не удалось скачать файл. Обновите вход и повторите."))}
+            finally{download.disabled=false;download.textContent="Скачать оригинал"}
+          };
+        }
         if(data.scope==="all"){
           const edit=node("button","Назначить имя");edit.type="button";
           edit.onclick=()=>{

@@ -203,7 +203,7 @@ class JournalHandler(BaseHTTPRequestHandler):
         if self.path == "/api/upload":
             self.upload()
             return
-        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people"}:
+        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people", "/api/file/preview", "/api/file/download"}:
             self.respond(404, {"error": "Not found"})
             return
         try:
@@ -243,6 +243,37 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return
             if user_id is None:
                 raise AuthenticationError("Invalid session")
+            if self.path in {"/api/file/preview", "/api/file/download"}:
+                record_id = payload.get("id")
+                if type(record_id) is not int or record_id <= 0:
+                    raise ValueError("Invalid file")
+                with sqlite3.connect(db_path) as db:
+                    row = db.execute("SELECT user_id,filename,storage_path FROM journal WHERE id=? AND kind='file'", (record_id,)).fetchone()
+                if row is None or (row[0] != user_id and user_id not in self.server.owner_ids):
+                    self.respond(404, {"error": "File not found"})
+                    return
+                path = Path(row[2]).resolve()
+                folder = Path(os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads")).resolve()
+                if not path.is_relative_to(folder) or not path.is_file():
+                    self.respond(404, {"error": "File unavailable"})
+                    return
+                if self.path.endswith("/preview"):
+                    from document_preview import summarize
+                    result = summarize(path, row[1])
+                    result["size"] = path.stat().st_size
+                    self.respond(200, result)
+                else:
+                    from urllib.parse import quote
+                    with path.open("rb") as source:
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/octet-stream")
+                        self.send_header("Content-Length", str(path.stat().st_size))
+                        self.send_header("Content-Disposition", "attachment; filename*=UTF-8''" + quote(row[1], safe=""))
+                        self.send_header("Cache-Control", "no-store")
+                        self.send_header("X-Content-Type-Options", "nosniff")
+                        self.end_headers()
+                        shutil.copyfileobj(source, self.wfile, 65536)
+                return
             if self.path == "/api/people":
                 if user_id not in self.server.owner_ids:
                     self.respond(403, {"error": "Owner access required"})
