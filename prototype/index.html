@@ -299,4 +299,45 @@ window.addEventListener('resize',()=>{if(graph)line(...graph)});render();if(loca
  }
  window.addEventListener('hashchange',route);route();
 })();
-</script></html>
+</script><style>
+main nav{
+  --reflection:148 185 216;--gleam:25%;
+  background:radial-gradient(ellipse at var(--gleam) 110%,rgb(var(--reflection) / .68),transparent 68%),linear-gradient(150deg,#204959ca,#102537e6);
+  box-shadow:inset 0 1px 1px #ffffffcc,inset 0 -2px 3px #99f5ed60,0 6px 20px #102b3440;
+  -webkit-backdrop-filter:blur(10px) saturate(190%);backdrop-filter:blur(10px) saturate(190%);
+}
+main nav button{color:white;text-shadow:0 1px 3px #152936;position:relative}
+main nav button.on{color:#123746;text-shadow:none}
+main nav:before{background:linear-gradient(150deg,#fff 0%,#e9ffff 28%,#bce3ec 67%,#e6f8ff 100%);box-shadow:inset 0 1px 2px white,inset 0 -2px 3px #789caa77,0 2px 7px #122c3d55}
+@media(prefers-reduced-transparency:reduce){main nav{background:#244453;backdrop-filter:none;-webkit-backdrop-filter:none}}
+</style>
+<script>
+(()=>{
+  const dock=document.querySelector('main nav');
+  const content=document.querySelector('#screen');
+  let scheduled=false;
+  function reflect(){
+    scheduled=false;
+    const bounds=dock.getBoundingClientRect();
+    if(!bounds.height)return;
+    const center=bounds.top+bounds.height/2;
+    let nearest=Infinity, tint='148 185 216', position=25;
+    for(const element of content.querySelectorAll('canvas,.panel,.action')){
+      const rect=element.getBoundingClientRect();
+      const offset=(rect.top+rect.height/2-center)/Math.max(1,rect.height/2+130);
+      if(Math.abs(offset)>=nearest||Math.abs(offset)>1)continue;
+      nearest=Math.abs(offset);
+      tint=element.matches('canvas')?'71 192 151':element.matches('.action')?'213 167 105':'135 165 235';
+      position=50+offset*45;
+    }
+    dock.style.setProperty('--reflection',tint);
+    dock.style.setProperty('--gleam',position+'%');
+  }
+  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(reflect)}}
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule);
+  new MutationObserver(schedule).observe(content,{childList:true});
+  schedule();
+})();
+</script>
+</html>
