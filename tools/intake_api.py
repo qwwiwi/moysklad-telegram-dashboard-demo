@@ -12,6 +12,9 @@ from contextlib import closing
 from intake_store import connect
 from http.cookies import SimpleCookie, CookieError
 import browser_auth
+import supplier_keys
+import fcntl
+import re
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote
@@ -98,7 +101,7 @@ def upload_name(value):
     return name
 
 
-def receive_upload(stream, length, filename, user_id, folder):
+def receive_upload(stream, length, filename, user_id, folder, expected_hash=None, idempotency=None, origin="Загрузка через сайт"):
     """Store one private stream and publish its journal record after completion."""
     if not 0 < length <= MAX_UPLOAD_BYTES:
         raise UploadError(413, "File limit is 100 MB")
@@ -120,12 +123,16 @@ def receive_upload(stream, length, filename, user_id, folder):
         fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "wb") as destination:
             remaining = length
+            content_hash = hashlib.sha256()
             while remaining:
                 chunk = stream.read(min(65536, remaining))
                 if not chunk:
                     raise UploadError(400, "Upload interrupted")
                 destination.write(chunk)
+                content_hash.update(chunk)
                 remaining -= len(chunk)
+            if expected_hash and not hmac.compare_digest(content_hash.hexdigest(), expected_hash):
+                raise UploadError(422, "Content checksum mismatch")
             destination.flush()
             os.fsync(destination.fileno())
         with closing(connect()) as db, db:
@@ -134,9 +141,12 @@ def receive_upload(stream, length, filename, user_id, folder):
                 "VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (user_id, previous["display_name"] if previous else "Telegram " + str(user_id),
                  profile["role"], datetime.now(timezone.utc).isoformat(), "file", filename, "",
-                 "Загрузка через сайт", "received", str(target)),
+                 origin, "received", str(target)),
             )
             record_id = record.lastrowid
+            if idempotency:
+                db.execute("INSERT INTO supplier_requests(user_id,request_key,content_hash,filename,size,journal_id) VALUES(?,?,?,?,?,?)",
+                           (user_id,idempotency,expected_hash,filename,length,record_id))
         published = True
         return {"id": record_id, "filename": filename, "status": "received", "size": length}
     finally:
@@ -205,11 +215,114 @@ class JournalHandler(BaseHTTPRequestHandler):
         except (sqlite3.Error, OSError):
             self.respond(503, {"error": "Upload temporarily unavailable"})
 
+    def supplier_identity(self):
+        authorization = self.headers.get("Authorization", "")
+        if not authorization.startswith("Bearer "):
+            raise AuthenticationError("API key required")
+        identity = supplier_keys.authenticate(self.server.db_path, authorization[7:])
+        if identity is None:
+            raise AuthenticationError("Invalid API key")
+        return identity
+
+    def process_supplier_document(self, user_id, record_id):
+        import threading
+        def process():
+            from supplier_bot_flow import process_submission
+            from telegram_demo_bot import create_client
+            process_submission(create_client(self.server.bot_token), user_id, record_id)
+        threading.Thread(target=process, daemon=True).start()
+
+    def supplier_upload(self):
+        self.close_connection = True
+        try:
+            identity = self.supplier_identity()
+            origin = self.headers.get("Origin")
+            if (origin and origin != self.server.public_origin) or self.headers.get("Sec-Fetch-Site") == "cross-site":
+                raise UploadError(403, "Invalid origin")
+            if self.headers.get("Transfer-Encoding") or len(self.headers.get_all("Content-Length", [])) != 1:
+                raise UploadError(411, "Content-Length required")
+            length = int(self.headers["Content-Length"])
+            if not 0 < length <= MAX_UPLOAD_BYTES:
+                raise UploadError(413, "File limit is 100 MB")
+            if self.headers.get_content_type() != "application/octet-stream":
+                raise UploadError(415, "Use application/octet-stream")
+            filename = upload_name(self.headers.get("X-File-Name"))
+            request_key = self.headers.get("Idempotency-Key", "")
+            digest = self.headers.get("X-Content-SHA256", "")
+            if not re.fullmatch(r"[\x21-\x7e]{1,100}", request_key) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+                raise UploadError(400, "Provide Idempotency-Key and X-Content-SHA256")
+            user_id = identity["user_id"]
+            folder = Path(os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads"))
+            folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+            lock_name = hashlib.sha256((str(user_id)+":"+request_key).encode()).hexdigest()
+            self.connection.settimeout(90)
+            with (folder / (".api-"+lock_name+".lock")).open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                with closing(connect()) as db, db:
+                    db.execute("""CREATE TABLE IF NOT EXISTS supplier_requests(
+                        user_id INTEGER NOT NULL, request_key TEXT NOT NULL,
+                        content_hash TEXT NOT NULL, filename TEXT NOT NULL,
+                        size INTEGER NOT NULL, journal_id INTEGER NOT NULL,
+                        PRIMARY KEY(user_id,request_key))""")
+                    previous = db.execute("SELECT * FROM supplier_requests WHERE user_id=? AND request_key=?",
+                                          (user_id, request_key)).fetchone()
+                if previous:
+                    if previous["content_hash"] != digest or previous["filename"] != filename or previous["size"] != length:
+                        raise UploadError(409, "Idempotency key already used for a different document")
+                    self.respond(200, {"id":previous["journal_id"],"filename":filename,
+                                       "status":"received","size":length,"reused":True})
+                    return
+                result = receive_upload(self.rfile, length, filename, user_id, folder,
+                                        expected_hash=digest, idempotency=request_key,
+                                        origin="API · "+identity["name"])
+            self.respond(201, result)
+            self.process_supplier_document(user_id,result["id"])
+        except AuthenticationError:
+            self.respond(401, {"error":"Invalid API key"})
+        except UploadError as error:
+            self.respond(error.status,{"error":str(error)})
+        except (ValueError,TypeError,UnicodeError):
+            self.respond(400,{"error":"Invalid upload"})
+        except (sqlite3.Error,OSError):
+            self.respond(503,{"error":"Upload temporarily unavailable"})
+
+    def supplier_get(self):
+        try:
+            identity = self.supplier_identity()
+            user_id = identity["user_id"]
+            if self.path == "/api/v1/documents":
+                self.respond(200,read_journal(self.server.db_path,user_id,False))
+                return
+            match = re.fullmatch(r"/api/v1/documents/([1-9][0-9]*)",self.path)
+            if not match:
+                self.respond(404,{"error":"Not found"})
+                return
+            with sqlite3.connect(self.server.db_path) as db:
+                db.row_factory = sqlite3.Row
+                row = db.execute("SELECT id,user_id,display_name,role,received_at,kind,filename,text,origin,status FROM journal WHERE id=? AND user_id=?",
+                                 (int(match[1]),user_id)).fetchone()
+                if row is None:
+                    self.respond(404,{"error":"Document not found"})
+                    return
+                processing = None
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='import_results'").fetchone():
+                    result = db.execute("SELECT result FROM import_results WHERE journal_id=?",(row["id"],)).fetchone()
+                    if result:
+                        processing = json.loads(result[0])
+            self.respond(200,{"document":dict(row),"processing":processing})
+        except AuthenticationError:
+            self.respond(401,{"error":"Invalid API key"})
+        except (sqlite3.Error,OSError,ValueError):
+            self.respond(503,{"error":"Documents temporarily unavailable"})
+
     def do_POST(self):
+        if self.path == "/api/v1/documents":
+            self.supplier_upload()
+            return
         if self.path == "/api/upload":
             self.upload()
             return
-        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people", "/api/file/preview", "/api/file/download", "/api/import/preview", "/api/import/execute", "/api/import/status"}:
+        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people", "/api/file/preview", "/api/file/download", "/api/import/preview", "/api/import/execute", "/api/import/status", "/api/keys/list", "/api/keys/create", "/api/keys/revoke"}:
             self.respond(404, {"error": "Not found"})
             return
         try:
@@ -249,6 +362,17 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return
             if user_id is None:
                 raise AuthenticationError("Invalid session")
+            if self.path.startswith("/api/keys/"):
+                if self.path.endswith("/list"):
+                    self.respond(200, {"keys": supplier_keys.list_keys(db_path,user_id)})
+                elif self.path.endswith("/create"):
+                    self.respond(201, supplier_keys.create(db_path,user_id,payload.get("name")))
+                else:
+                    if not supplier_keys.revoke(db_path,user_id,payload.get("id")):
+                        self.respond(404, {"error":"Key not found"})
+                        return
+                    self.respond(200, {"revoked":True})
+                return
             if self.path.startswith("/api/import/"):
                 if user_id not in self.server.owner_ids:
                     self.respond(403, {"error": "Owner access required"})
@@ -354,6 +478,9 @@ class JournalHandler(BaseHTTPRequestHandler):
             self.respond(503, {"error": "Journal temporarily unavailable"})
 
     def do_GET(self):
+        if self.path.startswith("/api/v1/"):
+            self.supplier_get()
+            return
         self.respond(405, {"error": "Use POST"})
 
 

@@ -1,0 +1,248 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>REST API поставщика — ТОВАРНО</title><style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f9fa;color:#192638;font:16px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:48px 28px 80px}a{color:#2d8687}h1{font-size:clamp(28px,5vw,44px);line-height:1.15}h2{margin-top:42px;font-size:25px}h3{margin-top:28px}pre{background:#192638;color:#f5f9fa;border-radius:12px;padding:20px;overflow:auto;font-size:13px;line-height:1.6}code{font-family:ui-monospace,monospace;font-size:.9em}p code,td code{overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #ccd9dd;padding:10px 12px;vertical-align:top;text-align:left}th{background:#ddf3ec}td{overflow-wrap:anywhere}p,li{max-width:900px}.top{font-size:14px}@media(max-width:600px){main{padding:24px 16px}table{font-size:12px}td,th{padding:7px}pre{padding:14px}}
+</style><main><a class="top" href="/#api">← Ключи API в кабинете</a><h1>REST API поставщика ТОВАРНО</h1>
+<p>Базовый адрес — <code>https://app.moyskladdemo.xyz</code>.</p>
+<p>API позволяет агенту поставщика загружать Excel/CSV и проверять результат обработки. Ключ связан с Telegram ID его владельца. Агент получает доступ к документам этого пользователя.</p>
+<h2>Подключение</h2>
+<ol>
+<li>Откройте <a href="https://t.me/tovarkonttolbot">бота ТОВАРНО</a>, нажмите «Старт», выберите загрузку документов и роль поставщика или сотрудника.</li>
+<li>Откройте личный кабинет через Mini App или персональную ссылку из бота.</li>
+<li>Перейдите в раздел API, задайте понятное название ключа и создайте ключ.</li>
+<li>Сохраните показанный ключ в секретах своей системы. В кабинете он показывается один раз.</li>
+<li>При прекращении интеграции отзовите ключ в кабинете.</li>
+</ol>
+<p>Передавайте ключ только в заголовке <code>Authorization: Bearer …</code>. Ключ хранится на стороне вашего сервера или агента. В клиентскую веб-страницу и в URL его помещать не следует.</p>
+<h2>Формат документа</h2>
+<p>Загрузка принимает файлы XLSX или CSV размером от 1 байта до 100 МиБ — 104 857 600 байт. Исходный файл сохраняется в закрытом хранилище и появляется в журнале с именем файла, автором, Telegram ID, временем и источником.</p>
+<p>Для автоматического проведения прямых отгрузок текущая версия полностью обрабатывает таблицу до 20 строк данных. Более крупный документ принимается в журнал и требует проверки перед проведением.</p>
+<table>
+<thead>
+<tr>
+<th>Колонка</th>
+<th>Содержимое</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Дата</td>
+<td>Дата отгрузки в формате <code>ГГГГ-ММ-ДД</code></td>
+</tr>
+<tr>
+<td>Заказ</td>
+<td>Номер заказа поставщика</td>
+</tr>
+<tr>
+<td>Площадка</td>
+<td>Например, Ozon или Wildberries</td>
+</tr>
+<tr>
+<td>Артикул</td>
+<td>Наш код товара или артикул из каталога МоегоСклада</td>
+</tr>
+<tr>
+<td>Наименование</td>
+<td>Название товара</td>
+</tr>
+<tr>
+<td>Количество</td>
+<td>Положительное целое число</td>
+</tr>
+<tr>
+<td>Закупка ₽/шт</td>
+<td>Положительная закупочная цена за единицу в рублях</td>
+</tr>
+<tr>
+<td>Продажа ₽/шт</td>
+<td>Положительная продажная цена за единицу в рублях</td>
+</tr>
+</tbody>
+</table>
+<p>Заголовки должны быть в первой строке. В XLSX используется первый читаемый лист. Для CSV удобен UTF-8 с BOM и разделитель <code>;</code>. Формулы в таблице требуют проверки.</p>
+<h2>Обработка</h2>
+<p>После приёма запускается проверка товаров и документов. Точный артикул или уникальное точное название сопоставляются с каталогом. Сокращения поставщика используются после явного подтверждения соответствия. При неоднозначности документ получает статус <code>needs_review</code>, а бот присылает уведомление.</p>
+<p>Уточнить обозначение можно в боте сообщением <code>Уточнить N: название поставщика = НАШ-АРТИКУЛ</code>, где N — номер записи журнала. Для нескольких неизвестных товаров отправляйте уточнения последовательно. Подтверждённые соответствия сохраняются для данного поставщика.</p>
+<p>Успешное проведение создаёт приёмки и отгрузки в МоёмСкладе на отдельном складе прямых отгрузок. Закупка образует обязательство перед поставщиком, продажа — задолженность покупателя. Фактические оплаты учитываются отдельными операциями.</p>
+<table>
+<thead>
+<tr>
+<th>Статус</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>received</code></td>
+<td>Файл сохранён, обработка ещё продолжается</td>
+</tr>
+<tr>
+<td><code>needs_review</code></td>
+<td>Нужны уточнение товара, корректировка таблицы или проверка ошибки</td>
+</tr>
+<tr>
+<td><code>posted</code></td>
+<td>Приёмки и отгрузки проведены в МоёмСкладе</td>
+</tr>
+</tbody>
+</table>
+<p>Голосовые пояснения доступны через Telegram-бота. Передача аудио через этот REST API пока не предусмотрена.</p>
+<h2>Загрузка через агента</h2>
+<p><code>POST /api/v1/documents</code></p>
+<p>Тело запроса содержит исходные байты файла. Обязательные заголовки приведены ниже.</p>
+<table>
+<thead>
+<tr>
+<th>Заголовок</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Authorization</code></td>
+<td><code>Bearer</code> и персональный ключ API</td>
+</tr>
+<tr>
+<td><code>Content-Type</code></td>
+<td><code>application/octet-stream</code></td>
+</tr>
+<tr>
+<td><code>Content-Length</code></td>
+<td>Точный размер тела запроса в байтах</td>
+</tr>
+<tr>
+<td><code>X-File-Name</code></td>
+<td>Имя файла, закодированное percent-encoding в UTF-8</td>
+</tr>
+<tr>
+<td><code>Idempotency-Key</code></td>
+<td>Уникальный идентификатор вашей отправки, 1–100 печатных ASCII-символов</td>
+</tr>
+<tr>
+<td><code>X-Content-SHA256</code></td>
+<td>SHA-256 исходного файла, 64 строчных шестнадцатеричных символа</td>
+</tr>
+</tbody>
+</table>
+<p>Пример для Bash. Переменная <code>TOVARNO_API_KEY</code> должна быть заранее передана средой исполнения из секретов вашей системы.</p>
+<pre><code class="language-bash">file='./supplier-report.xlsx'
+filename=$(python3 -c 'import pathlib,sys,urllib.parse; print(urllib.parse.quote(pathlib.Path(sys.argv[1]).name, safe=&quot;&quot;))' &quot;$file&quot;)
+checksum=$(python3 -c 'import hashlib,sys; print(hashlib.file_digest(open(sys.argv[1],&quot;rb&quot;),&quot;sha256&quot;).hexdigest())' &quot;$file&quot;)
+
+curl --fail-with-body --silent --show-error \
+  'https://app.moyskladdemo.xyz/api/v1/documents' \
+  -H &quot;Authorization: Bearer ${TOVARNO_API_KEY}&quot; \
+  -H 'Content-Type: application/octet-stream' \
+  -H &quot;X-File-Name: ${filename}&quot; \
+  -H &quot;X-Content-SHA256: ${checksum}&quot; \
+  -H 'Idempotency-Key: warehouse-20261111-report-001' \
+  --data-binary &quot;@${file}&quot;
+</code></pre>
+<p>Пример ответа HTTP 201.</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: 42,
+  &quot;filename&quot;: &quot;supplier-report.xlsx&quot;,
+  &quot;status&quot;: &quot;received&quot;,
+  &quot;size&quot;: 5821
+}
+</code></pre>
+<p>Номер, имя и размер выше приведены как пример. Сохраните реальный <code>id</code> из ответа и проверяйте состояние через метод документа.</p>
+<h3>Повтор запроса</h3>
+<p>При потере ответа повторите запрос с тем же <code>Idempotency-Key</code>, тем же именем, размером и содержимым файла. API вернёт HTTP 200 и тот же <code>id</code>, с полем <code>reused: true</code>. Поле <code>status</code> такого ответа отражает приём файла, актуальный результат проведения получите отдельным GET-запросом.</p>
+<p>Если для уже использованного идентификатора изменились имя, размер или контрольная сумма, сервер вернёт HTTP 409. Для новой версии файла используйте новый идентификатор. Запрос с неверной контрольной суммой отклоняется с HTTP 422.</p>
+<p>При HTTP 5xx или сетевой ошибке используйте ограниченные повторы с задержкой и тем же идентификатором отправки. При HTTP 400, 401, 409, 413, 415 или 422 сначала устраните указанную причину.</p>
+<h2>Статус документа</h2>
+<p><code>GET /api/v1/documents/{id}</code></p>
+<pre><code class="language-bash">document_id=42
+curl --fail-with-body --silent --show-error \
+  &quot;https://app.moyskladdemo.xyz/api/v1/documents/${document_id}&quot; \
+  -H &quot;Authorization: Bearer ${TOVARNO_API_KEY}&quot;
+</code></pre>
+<p>Ответ содержит <code>document</code> — поля записи журнала — и <code>processing</code> — результат обработки или <code>null</code>, пока он отсутствует. Поле <code>document.status</code> содержит актуальный статус. Результат обработки может включать <code>errors</code>, <code>unmatched</code>, <code>totals</code> и ссылки на созданные документы.</p>
+<p>Для опроса достаточно интервала 5–10 секунд с ограничением числа попыток. Статус <code>needs_review</code> требует действия человека или исправленного файла. Статус <code>posted</code> завершает проведение.</p>
+<h2>Список документов</h2>
+<p><code>GET /api/v1/documents</code></p>
+<pre><code class="language-bash">curl --fail-with-body --silent --show-error \
+  'https://app.moyskladdemo.xyz/api/v1/documents' \
+  -H &quot;Authorization: Bearer ${TOVARNO_API_KEY}&quot;
+</code></pre>
+<p>Ответ — <code>{ "entries": [...], "counts": {...}, "scope": "own" }</code>. Возвращаются последние 100 записей пользователя, которому принадлежит ключ. API не возвращает закрытые пути хранения.</p>
+<h2>Ошибки</h2>
+<table>
+<thead>
+<tr>
+<th>HTTP</th>
+<th>Причина и действие</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>400</td>
+<td>Некорректные поля или роль не выбрана. Проверьте заголовки и выберите роль в боте</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Ключ отсутствует, неверен или отозван. Проверьте секрет</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Документ отсутствует или недоступен данному пользователю</td>
+</tr>
+<tr>
+<td>409</td>
+<td>Повторный идентификатор отправки использован с другим файлом</td>
+</tr>
+<tr>
+<td>411</td>
+<td>Отсутствует допустимый Content-Length</td>
+</tr>
+<tr>
+<td>413</td>
+<td>Размер файла выходит за пределы допустимого</td>
+</tr>
+<tr>
+<td>415</td>
+<td>Неверный Content-Type</td>
+</tr>
+<tr>
+<td>422</td>
+<td>Контрольная сумма не совпала с полученными байтами</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Сервис временно недоступен</td>
+</tr>
+<tr>
+<td>507</td>
+<td>Недостаточно свободного места на сервере</td>
+</tr>
+</tbody>
+</table>
+<h2>Управление ключами из кабинета</h2>
+<p>Эти методы используются интерфейсом кабинета с браузерной сессией или подписанными Telegram initData. Тело — JSON. Доступ ограничен ключами текущего пользователя.</p>
+<table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Тело</th>
+<th>Ответ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /api/keys/list</code></td>
+<td><code>{}</code></td>
+<td><code>{keys:[...]}</code></td>
+</tr>
+<tr>
+<td><code>POST /api/keys/create</code></td>
+<td><code>{"name":"Агент склада"}</code></td>
+<td>HTTP 201 и поля <code>id,name,prefix,created_at,key</code></td>
+</tr>
+<tr>
+<td><code>POST /api/keys/revoke</code></td>
+<td><code>{"id":7}</code></td>
+<td><code>{"revoked":true}</code></td>
+</tr>
+</tbody>
+</table>
+<p>В списке видны название, безопасный префикс и времена создания, последнего использования и отзыва. Времена передаются в секундах Unix. Полное значение ключа возвращается только при создании. На сервере хранится его хеш.</p>
+<p>Ключ авторизует загрузку файлов и чтение собственных записей через REST. Уточнения товаров и назначение имён отправителям выполняются через кабинет и Telegram с соответствующими правами.</p></main></html>

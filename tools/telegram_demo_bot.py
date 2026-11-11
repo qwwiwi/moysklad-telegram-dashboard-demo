@@ -67,6 +67,7 @@ def main_buttons(app_url):
     return {"inline_keyboard": [
         [{"text": "Открыть ТОВАРНО", "style": "success", "web_app": {"url": app_url}}],
         [{"text": "Вход по ссылке", "callback_data": "browser_login"}],
+        [{"text": "API для вашего агента", "web_app": {"url": app_url.rstrip("/") + "/#api"}}],
         [{"text": "Загрузить документы", "callback_data": "upload"}],
         [{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}],
     ]}
