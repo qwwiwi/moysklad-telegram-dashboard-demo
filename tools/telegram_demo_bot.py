@@ -115,7 +115,7 @@ def reply_to_start(call, update, username, app_url):
     chat_id = chat["id"]
     def say(body, markup=None):
         call("sendMessage", chat_id=chat_id, text=body,
-             reply_markup=markup or main_buttons(app_url))
+             **({"reply_markup": markup} if markup else {}))
     if text == "Старт" or text.split(maxsplit=1)[:1] in [["/start"], [f"/start@{username}"], ["/menu"]]:
         if not callback:
             call("sendMessage", chat_id=chat_id, text="ТОВАРНО — товары, финансы и документы.",
@@ -132,7 +132,10 @@ def reply_to_start(call, update, username, app_url):
     with connect() as db:
         if text in roles:
             db.execute("INSERT INTO profiles VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET role=excluded.role", (author["id"], roles[text]))
-            say("Выбран режим «" + text[3:] + "». Пришлите файл или текст отгрузки. Отправитель будет указан в журнале.")
+            db.commit()
+            role_label = {"supplier": "Поставщик", "employee": "Сотрудник"}[roles[text]]
+            call("sendPhoto", chat_id=chat_id, photo=app_url.rstrip("/") + "/assets/tovarno-upload.jpg",
+                 caption=f"Ваша роль — {role_label}. Прикрепите Excel (.xlsx) или CSV до 5 МБ. Можно написать об отгрузке текстом или переслать сообщение из рабочего чата. После приёма бот сообщит номер записи в журнале.")
             return
         profile = db.execute("SELECT role FROM profiles WHERE user_id=?", (author["id"],)).fetchone()
         if text in {"Загрузить файл", "Написать отгрузку"}:
@@ -180,7 +183,8 @@ def reply_to_start(call, update, username, app_url):
         cursor = db.execute("""INSERT INTO journal(user_id,display_name,role,received_at,kind,filename,text,origin,message_id,chat_id,storage_path)
             VALUES(?,?,?,?,?,?,?,?,?,?,?)""", (author["id"], name, profile["role"], datetime.now(timezone.utc).isoformat(), kind, filename, text, origin, message["message_id"], chat_id, str(path) if path else None))
         record_id = cursor.lastrowid
-    say(f"Получено. Запись №{record_id} сохранена в журнале со статусом «Получено». Данные ожидают проверки перед внесением в учёт.")
+    say(f"Получено. Запись №{record_id} сохранена в журнале со статусом «Получено». Данные ожидают проверки перед внесением в учёт.",
+        {"inline_keyboard": [[{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}]]})
 
 
 def run(call, app_url):
