@@ -13,7 +13,14 @@ const tabs = [LayoutGrid,Box,Wallet,Megaphone,Store].map((Icon,i)=>({
 const menu = document.querySelector<HTMLDivElement>("main nav")!;
 const selected = () => menu.querySelector<HTMLElement>(".on")?.dataset.index ?? "";
 function DashboardBar(){
-  const {setMode} = useTheme();
+  const {setMode, theme, setTheme} = useTheme();
+  useEffect(()=>{
+    const button=document.getElementById("brand-toggle")!;
+    button.setAttribute("aria-pressed",String(theme==="dark"));
+    const toggle=()=>setTheme(theme==="dark"?"light":"dark");
+    button.addEventListener("click",toggle);
+    return ()=>button.removeEventListener("click",toggle);
+  },[theme,setTheme]);
   const [tab,setTab] = useState(selected);
   const picker = document.querySelector<HTMLSelectElement>("#glass-mode")!;
   const [variant,setVariant] = useState(picker.value);
