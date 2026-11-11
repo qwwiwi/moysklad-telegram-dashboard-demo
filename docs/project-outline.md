@@ -1,6 +1,6 @@
 # Delivery outline
 
-Public README is the Russian teaching walkthrough; internal planning notes remain in English. This outline describes intended work, not a completed application.
+Public README is the Russian teaching walkthrough; internal planning notes remain in English. This outline describes the application work; the training-account data generator and seed adapter are now implemented. No application UI or deployment exists yet.
 
 ## Confirmed context
 
@@ -42,3 +42,7 @@ Existing web-service routing and deployment layout; bot username and token file;
 ## Optional later work
 
 Daily Telegram digest, configurable alerts, ABC analysis, replenishment estimates and cash planning. These are proposals outside the first-version baseline.
+
+## Completed data preparation
+
+The owner authorized changing the empty training account accounting currency from KZT to RUB before seeding. The original currency definition was saved privately. Created 206 marked demo objects including 30 products and 166 documents across 180 days; the existing primary warehouse is reused. API stock totals and every product/warehouse quantity, sales, COGS, gross profit and cash reconcile with the synthetic ledger. See the Russian guide in demo-seeding.md. No live account IDs or raw responses are published.
