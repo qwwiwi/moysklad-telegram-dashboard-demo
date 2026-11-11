@@ -105,7 +105,10 @@ def reply_to_start(call, update, username, app_url):
         if not callback:
             call("sendMessage", chat_id=chat_id, text="ТОВАРНО — товары, финансы и документы.",
                  reply_markup={"keyboard": [[{"text": "Старт"}]], "resize_keyboard": True, "is_persistent": True})
-        say("Откройте панель или загрузите документы. История отправок доступна в журнале.")
+        call("sendPhoto", chat_id=chat_id,
+             photo=app_url.rstrip("/") + "/assets/tovarno-welcome-1080.jpg",
+             caption="Ваш личный кабинет ТОВАРНО. Откройте панель, загрузите документы или посмотрите историю отправок.",
+             reply_markup=main_buttons(app_url))
         return
     if text == "Загрузить документы":
         say("Кто отправляет документы?", role_buttons())
