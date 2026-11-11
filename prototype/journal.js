@@ -16,10 +16,14 @@
     journal.replaceChildren(node("h1","Журнал загрузок"));
     const back=node("a","← К сводке");back.href="#";journal.prepend(back);
     const initData=window.Telegram?.WebApp?.initData;
-    if(!initData){journal.append(node("p","Откройте приложение через кнопку бота в Telegram, чтобы увидеть свои загрузки."));return}
     const info=node("p","Загружаем записи…");journal.append(info);
     try{
-      const response=await fetch("/api/journal",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData})});
+      const response=await fetch("/api/journal",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",cache:"no-store",body:JSON.stringify(initData?{initData}:{})});
+      if(request!==version)return;
+      if(response.status===401||response.status===403){
+        info.textContent="Для просмотра журнала войдите через Telegram.";
+        const login=node("a","Вход по ссылке");login.href="#login";journal.append(login);return;
+      }
       if(!response.ok)throw Error();
       const data=await response.json();if(request!==version)return;
       info.textContent=data.entries.length?"Поступившие документы ожидают проверки.":"Загрузок пока нет. Отправьте Excel или сообщение боту.";
@@ -35,5 +39,5 @@
       }
     }catch{if(request===version)info.textContent="Не удалось открыть журнал. Переоткройте приложение через бота и повторите."}
   }
-  window.addEventListener("hashchange",show);window.addEventListener("load",show);show();
+  window.addEventListener("session-ended",()=>{journal.replaceChildren();show()});window.addEventListener("hashchange",show);window.addEventListener("load",show);show();
 })();

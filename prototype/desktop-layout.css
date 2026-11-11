@@ -1,0 +1,53 @@
+.workspace-sidebar { display:none }
+@media (min-width: 860px) {
+  main:has(.workspace-sidebar):not([hidden]) {
+    display:grid;
+    grid-template-columns:252px minmax(0,1fr);
+    grid-template-rows:auto 1fr;
+    align-items:start;
+    column-gap:clamp(28px,4vw,72px);
+    max-width:1500px;
+    padding:0 clamp(28px,4vw,72px) 0 0;
+    min-height:100dvh;
+  }
+  .workspace-sidebar {
+    display:flex;flex-direction:column;position:sticky;top:0;grid-column:1;grid-row:1 / span 3;
+    min-height:100dvh;background:var(--surface);border-inline-end:1px solid var(--line);
+  }
+  .workspace-logo {display:block;margin:22px 5px 30px;align-self:center}
+  .workspace-logo .brand-logo {width:240px}
+  .workspace-links {display:grid;gap:4px;padding:0 16px}
+  .workspace-links button,.workspace-links a {
+    font:550 15px/1.4 "Open Sans",system-ui,sans-serif;cursor:pointer;
+    display:flex;align-items:center;gap:13px;min-height:46px;width:100%;text-align:left;
+    border:0;padding:9px 14px;border-radius:10px;background:transparent;color:var(--muted);text-decoration:none
+  }
+  .workspace-links :is(button,a):hover {background:var(--page);color:var(--text)}
+  .workspace-links [aria-current=page] {background:var(--soft);color:var(--text);font-weight:650}
+  .workspace-links .nav-icon {display:contents}
+  .workspace-links svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+  .workspace-documents {border-top:1px solid var(--line);padding-top:16px;margin-top:16px}
+  main:has(.workspace-sidebar)>header {grid-column:2;display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:20px 0 16px}
+  main>header .brand-logo,main>.journal-link,main>#partner-link,#glass-root,main nav {display:none!important}
+  main:has(.workspace-sidebar)>:is(#screen,#intake-journal,#partner-cabinet) {grid-column:2;grid-row:2;min-width:0;padding:14px 0 56px}
+  main h1 {font-size:clamp(32px,3vw,44px);margin:12px 0 5px}
+  .overview-metrics {grid-template-columns:1.25fr 1fr 1fr;gap:14px;margin:26px 0 16px}
+  .overview-metrics article,.overview-metrics article:first-child {
+    grid-column:auto;border:1px solid var(--line);padding:clamp(16px,2vw,28px);min-width:0;border-radius:16px
+  }
+  .overview-metrics article:first-child {background:var(--ink);color:var(--white);border-color:transparent}
+  .overview-metrics article:first-child span {color:var(--mint)}
+  .overview-metrics article:first-child b {color:var(--white)}
+  .overview-metrics article b,.overview-metrics article:first-child b {font-size:clamp(22px,2.4vw,36px);white-space:nowrap}
+  .overview-chart {padding:24px 28px;border-radius:16px}
+  .overview-chart .head {margin-bottom:24px}
+  #screen>.choices {width:fit-content;min-width:320px}
+  #screen>.row {padding-block:16px}
+  .purchase-actions {gap:12px}
+  #partner-cabinet article,#intake-journal article {max-width:920px}
+}
+@media (min-width:860px) and (max-width:1040px) {
+  main:has(.workspace-sidebar):not([hidden]) {grid-template-columns:245px minmax(0,1fr);column-gap:20px;padding-right:20px}
+  .overview-metrics {gap:8px}
+  .overview-metrics article,.overview-metrics article:first-child {padding:14px 10px}
+}
