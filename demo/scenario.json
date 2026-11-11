@@ -1,0 +1,15 @@
+{
+  "synthetic": true,
+  "currency": "RUB",
+  "period_days": 30,
+  "original_investment": 10000000,
+  "opening_inventory_cost": 7000000,
+  "opening_cash": 3000000,
+  "net_sales": 4000000,
+  "net_cogs": 2800000,
+  "other_expenses_including_taxes": 900000,
+  "paid_inventory_purchases": 2800000,
+  "assumed_average_inventory_cost": 7000000,
+  "closing_inventory_cost": 7000000,
+  "closing_cash": 3300000
+}
