@@ -1,0 +1,432 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script src="browser-login.js"></script><script defer src="https://telegram.org/js/telegram-web-app.js?65"></script><title>ТОВАРНО · Панель владельца</title><style>@import url("glass/dock.css") layer(vendor);</style><style>*{box-sizing:border-box}body{margin:0;background:#e9eee8;color:#19372f;font:16px Inter,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}main{max-width:480px;margin:auto;min-height:100vh;background:#fbfcf6;padding:22px 22px 92px}header,nav,.row,.head{display:flex;align-items:center;justify-content:space-between;gap:12px}header{padding-bottom:20px;border-bottom:1px solid #cbd6cb}header strong{font-size:22px;letter-spacing:-1px}.badge{background:#dfebdc;border-radius:20px;padding:5px 12px;font-size:13px}h1{font-size:31px;letter-spacing:-1.3px;margin:24px 0 4px}small,.muted{color:#50695f}h2{font-size:20px;letter-spacing:-.6px}.panel{background:#e3efdd;padding:21px;border-radius:18px;margin:21px 0}.big{font-size:clamp(32px,8vw,44px);font-weight:650;letter-spacing:-2px;margin:4px 0 14px}.split{height:9px;background:#a7c59d;border-radius:6px;overflow:hidden;margin:12px 0}.split i{display:block;height:100%;width:47.28%;background:#347459}.row{padding:12px 0;border-bottom:1px solid #d7e0d4}.row b{white-space:nowrap}.head{margin-top:22px}button,select{font:inherit;color:inherit;cursor:pointer}select{background:#fff;border:1px solid #bdccbe;border-radius:8px;padding:7px}canvas{width:100%;height:130px}button.action{background:#f2ecdd;border:0;border-radius:12px;text-align:left;width:100%;padding:16px;margin:20px 0;font-weight:600}nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);background:#fbfcf6;border-top:1px solid #c7d2c5;padding:9px 14px max(9px,env(safe-area-inset-bottom))}nav button{border:0;border-radius:12px;background:transparent;flex:1;padding:13px 3px}nav button.on{background:#dcebd8;font-weight:650}button:focus-visible,select:focus-visible{outline:3px solid #347459}.choices{display:flex;gap:5px;background:#eef2e9;border-radius:12px;padding:4px;margin:15px 0}.choices button{flex:1;border:0;background:transparent;padding:11px 3px;border-radius:9px}.choices .selected{background:white;color:#205b44;font-weight:650}.dates,.legend{font-size:13px;color:#50695f}.legend span{color:#78613e}nav{gap:0;padding-inline:5px}nav button{font-size:12px;min-height:44px}canvas{display:block}.row span{min-width:0}.purchase-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.purchase-actions button,.buy-submit{border:1px solid #b7caba;background:#edf4e8;border-radius:10px;padding:10px 14px;min-height:44px;color:#214b39}.purchase-actions button[aria-pressed=true],.buy-submit{background:#245843;color:#fff}.buy-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}.buy-grid div{border-top:2px solid #bfd3be;padding:9px 0}.buy-grid strong,.buy-grid small,.buy-field{display:block}.buy-grid strong{font-size:19px}.buy-field{margin:12px 0}.buy-field select,.buy-field input{width:100%;min-width:0;min-height:42px;box-sizing:border-box}.buy-field input[type=number]{border:1px solid #bdccbe;border-radius:8px;font:inherit;padding:8px}.buy-field input[type=range]{accent-color:#386649}.buy-item{padding:13px 0;border-bottom:1px solid #d8dfd4}.buy-item summary{cursor:pointer;line-height:1.5}.buy-item summary b,.buy-item summary small{display:block}.buy-flag{display:inline-block;font-size:13px;font-weight:650;background:#e9eee4;color:#294735;border-radius:5px;padding:2px 6px}.buy-flag.alert{color:#803622;background:#f8e4d7}.buy-flag.warn{color:#704f10;background:#f6edcf}.buy-note{font-size:14px;line-height:1.45;color:#4e6155}.scenario-box{border:1px solid #c5d3c5;border-radius:14px;padding:14px;margin:18px 0}.buy-summary{font-size:15px;color:#44584c}.proc-panel{background:#e2eddd;padding:16px;border-radius:14px}.proc-panel b{display:block;font-size:30px}.buy-field label{display:block}.purchase-actions button:disabled,.buy-submit:disabled{opacity:.5}#procurement label small{display:block}#procurement summary:focus-visible{outline:2px solid #245843}#procurement hr{border:0;border-top:1px solid #d8dfd4}#procurement p{line-height:1.45}</style><style>
+body{background:#e7eeea;color:#172e26}main{background:#fafcfb;padding-bottom:110px}
+header{padding-bottom:15px;border-color:#e1e8e4}header strong{display:flex;align-items:center;gap:9px}header strong:before{content:'';width:27px;height:27px;border-radius:9px;background:repeating-linear-gradient(135deg,#245741 0 6px,#91bd9e 6px 9px)}
+header .badge{background:#e8f1ea;color:#365e46;font-size:12px}
+#screen>.panel{position:relative;isolation:isolate;overflow:hidden;background:#173e32;color:#f2fff5;padding:23px 20px;border-radius:20px;font-size:14px}
+#screen>.panel:after{content:'';position:absolute;z-index:-1;width:145px;height:145px;right:-53px;top:-48px;border-radius:50%;border:16px solid #2c5443;box-shadow:0 0 0 13px #224938,0 0 0 26px #29513f}
+#screen .big{font-weight:620;letter-spacing:-.055em;margin:8px 0 0}#screen>.row{padding:13px 2px;border-color:#e0e8e2}
+main nav{position:fixed;z-index:9;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;bottom:max(8px,env(safe-area-inset-bottom));width:min(452px,calc(100% - 16px));background:#fff;border:1px solid #d7e1da;border-radius:23px;padding:5px 3px;box-shadow:0 5px 25px #17382a20}
+main nav button,main nav button.on{display:flex;align-items:center;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:51px;padding:0;background:transparent;font:550 clamp(10px,2.65vw,12px)/1.2 system-ui;color:#55685f}
+main nav button.on{color:#184b33;font-weight:700}.nav-icon{display:grid;place-items:center;width:42px;height:27px;border-radius:12px}.on>.nav-icon{background:#d6ebdc}.nav-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+main nav button:focus-visible{outline:2px solid #317653;outline-offset:-2px}
+body {
+  color: #172238;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: radial-gradient(ellipse at 15% 15%, #def2f1, transparent 50%), radial-gradient(ellipse at 92% 72%, #d7dcf2, transparent 55%), #e9edf4;
+}
+main {
+  background: radial-gradient(ellipse 420px 410px at 98% 0%, #dce7ff 0%, transparent 78%), radial-gradient(ellipse 360px 340px at 0% 24%, #ddf5ed 0%, transparent 75%), #f8fafc;
+  padding-bottom: calc(108px + env(safe-area-inset-bottom));
+}
+header strong:before {background:linear-gradient(135deg,#fff9,transparent 55%),repeating-linear-gradient(135deg,#338488 0 6px,#a0e4da 6px 9px);box-shadow:inset 0 1px 2px #fff,inset 0 -1px 2px #27617170}
+header,.row,#screen>.row {border-color:#293c5a18}
+header .badge,.purchase-actions button,#screen select {background:#ffffffa8;color:#244651;border:1px solid #fff;border-radius:20px;box-shadow:0 2px 6px #31456a12}
+#screen>.panel {
+  background: radial-gradient(ellipse at 108% 90%,#abebd6 0,transparent 57%),radial-gradient(ellipse at 85% -35%,#aabfec 0,transparent 72%),linear-gradient(120deg,#f5fcff,#dcf0f4);
+  color:#173146;border:1px solid #fffffff2;box-shadow:inset 0 2px 1px #fff,inset 0 -1px 2px #708fa83b,0 8px 22px #34526c14;border-radius:25px;
+}
+#screen>.panel:after {width:158px;height:158px;top:-100px;right:-27px;border:1px solid #ffffffa8;background:linear-gradient(140deg,#fff5,#c4d7ff22 53%,#fafcff82);box-shadow:0 6px 19px #527d9220,inset 0 -5px 9px #ffffff80}
+#screen .big{font-weight:680;color:#142e43}
+main nav {
+  --tab:0;isolation:isolate;overflow:hidden;padding:5px;border-radius:34px;background:#f3f7f9;
+  border:1px solid #ffffffdf;box-shadow:inset 0 1px 1px white,inset 0 -1px 2px #7795ad6b,0 7px 22px #1d38442b;
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  main nav {background:linear-gradient(135deg,#ffffffbf,#f6ffff69 47%,#e1e9fa85);backdrop-filter:blur(17px) saturate(1.65);-webkit-backdrop-filter:blur(17px) saturate(1.65)}
+}
+main nav:has(button:nth-child(2).on){--tab:1}main nav:has(button:nth-child(3).on){--tab:2}main nav:has(button:nth-child(4).on){--tab:3}main nav:has(button:nth-child(5).on){--tab:4}
+main nav:before {content:"";position:absolute;z-index:-1;top:4px;bottom:4px;left:5px;width:calc((100% - 10px)/5);border-radius:26px;transform:translateX(calc(var(--tab)*100%));transition:transform .3s cubic-bezier(.2,.8,.25,1);background:linear-gradient(145deg,#fffffff5,#dbf3f3ac 65%,#c3d8f18c);box-shadow:inset 0 1px 2px #fff,inset 0 -1px 2px #63899755,0 2px 5px #48657922}
+main nav button{color:#3e5061}main nav button.on{color:#075661}main nav .on>.nav-icon{background:transparent}
+main nav button:focus-visible{border-radius:26px}
+@media(prefers-reduced-motion:reduce){main nav:before{transition:none}}
+@media(prefers-reduced-transparency:reduce){main nav{background:#f3f7f9;backdrop-filter:none;-webkit-backdrop-filter:none}}
+</style><main><header><img class="brand-logo light-logo" alt="ТОВАРНО" src="brand/tovarno-brand-kit/svg-transparent/tovarno-horizontal-light.svg"><img class="brand-logo dark-logo" alt="ТОВАРНО" src="brand/tovarno-brand-kit/svg-transparent/tovarno-horizontal-dark.svg"><button id="brand-toggle" type="button" aria-label="Тёмная тема" aria-pressed="false">Тёмная тема</button></header><div id="screen"></div><a id="partner-link" href="#partner">Склад партнёра <span>Отчёты об отправках　›</span></a><nav aria-label="Разделы"></nav></main><script>const purchasingProducts=[{"name": "Термокружка Север 350 мл", "code": "A2S-DEMO-P001", "cost": 1000.0, "main": 170, "mainSold": 196, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Город 400 мл", "code": "A2S-DEMO-P002", "cost": 1100.0, "main": 130, "mainSold": 192, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Утро 450 мл", "code": "A2S-DEMO-P003", "cost": 1200.0, "main": 130, "mainSold": 205, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Волна 500 мл", "code": "A2S-DEMO-P004", "cost": 1300.0, "main": 130, "mainSold": 208, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Лес 350 мл", "code": "A2S-DEMO-P005", "cost": 1400.0, "main": 130, "mainSold": 197, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Маршрут 450 мл", "code": "A2S-DEMO-P006", "cost": 1500.0, "main": 130, "mainSold": 184, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Камень 400 мл", "code": "A2S-DEMO-P007", "cost": 1600.0, "main": 130, "mainSold": 192, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Туман 500 мл", "code": "A2S-DEMO-P008", "cost": 1700.0, "main": 130, "mainSold": 207, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Песок 350 мл", "code": "A2S-DEMO-P009", "cost": 1800.0, "main": 130, "mainSold": 190, "secondary": 30, "secondarySold": 0}, {"name": "Термокружка Полдень 600 мл", "code": "A2S-DEMO-P010", "cost": 1900.0, "main": 130, "mainSold": 203, "secondary": 30, "secondarySold": 0}, {"name": "Контейнер Квадрат 1 л", "code": "A2S-DEMO-P011", "cost": 1000.0, "main": 120, "mainSold": 19, "secondary": 40, "secondarySold": 0}, {"name": "Контейнер Квадрат 2 л", "code": "A2S-DEMO-P012", "cost": 1100.0, "main": 130, "mainSold": 17, "secondary": 30, "secondarySold": 0}, {"name": "Контейнер Круг 1 л", "code": "A2S-DEMO-P013", "cost": 1200.0, "main": 130, "mainSold": 20, "secondary": 30, "secondarySold": 0}, {"name": "Контейнер Круг 2 л", "code": "A2S-DEMO-P014", "cost": 1300.0, "main": 130, "mainSold": 19, "secondary": 30, "secondarySold": 0}, {"name": "Контейнер Стекло 0,8 л", "code": "A2S-DEMO-P015", "cost": 1400.0, "main": 130, "mainSold": 19, "secondary": 30, "secondarySold": 0}, {"name": "Контейнер Стекло 1,5 л", "code": "A2S-DEMO-P016", "cost": 1500.0, "main": 130, "mainSold": 20, "secondary": 30, "secondarySold": 0}, {"name": "Ланч-бокс Два отдела", "code": "A2S-DEMO-P017", "cost": 1600.0, "main": 130, "mainSold": 20, "secondary": 30, "secondarySold": 0}, {"name": "Ланч-бокс Три отдела", "code": "A2S-DEMO-P018", "cost": 1700.0, "main": 130, "mainSold": 19, "secondary": 30, "secondarySold": 0}, {"name": "Набор контейнеров Малый", "code": "A2S-DEMO-P019", "cost": 1800.0, "main": 130, "mainSold": 20, "secondary": 30, "secondarySold": 0}, {"name": "Набор контейнеров Большой", "code": "A2S-DEMO-P020", "cost": 1900.0, "main": 130, "mainSold": 16, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Полка", "code": "A2S-DEMO-P021", "cost": 1000.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Ящик", "code": "A2S-DEMO-P022", "cost": 1100.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Стол", "code": "A2S-DEMO-P023", "cost": 1200.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Кухня", "code": "A2S-DEMO-P024", "cost": 1300.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Ванная", "code": "A2S-DEMO-P025", "cost": 1400.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Шкаф", "code": "A2S-DEMO-P026", "cost": 1500.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Корзина", "code": "A2S-DEMO-P027", "cost": 1600.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Модуль", "code": "A2S-DEMO-P028", "cost": 1700.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Угол", "code": "A2S-DEMO-P029", "cost": 1800.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}, {"name": "Органайзер Комплект", "code": "A2S-DEMO-P030", "cost": 1900.0, "main": 130, "mainSold": 0, "secondary": 30, "secondarySold": 0}];
+const data={"stock": [{"name": "Контейнер Квадрат 1 л", "qty": 160.0, "sum": 160000, "sold": 136.0}, {"name": "Контейнер Квадрат 2 л", "qty": 160.0, "sum": 176000, "sold": 131.0}, {"name": "Контейнер Круг 1 л", "qty": 160.0, "sum": 192000, "sold": 124.0}, {"name": "Контейнер Круг 2 л", "qty": 160.0, "sum": 208000, "sold": 130.0}, {"name": "Контейнер Стекло 0,8 л", "qty": 160.0, "sum": 224000, "sold": 136.0}, {"name": "Контейнер Стекло 1,5 л", "qty": 160.0, "sum": 240000, "sold": 137.0}, {"name": "Ланч-бокс Два отдела", "qty": 160.0, "sum": 256000, "sold": 134.0}, {"name": "Ланч-бокс Три отдела", "qty": 160.0, "sum": 272000, "sold": 140.0}, {"name": "Набор контейнеров Большой", "qty": 160.0, "sum": 304000, "sold": 129.0}, {"name": "Набор контейнеров Малый", "qty": 160.0, "sum": 288000, "sold": 132.0}, {"name": "Органайзер Ванная", "qty": 160.0, "sum": 224000, "sold": 0}, {"name": "Органайзер Комплект", "qty": 160.0, "sum": 304000, "sold": 0}, {"name": "Органайзер Корзина", "qty": 160.0, "sum": 256000, "sold": 0}, {"name": "Органайзер Кухня", "qty": 160.0, "sum": 208000, "sold": 0}, {"name": "Органайзер Модуль", "qty": 160.0, "sum": 272000, "sold": 0}, {"name": "Органайзер Полка", "qty": 160.0, "sum": 160000, "sold": 0}, {"name": "Органайзер Стол", "qty": 160.0, "sum": 192000, "sold": 0}, {"name": "Органайзер Угол", "qty": 160.0, "sum": 288000, "sold": 0}, {"name": "Органайзер Шкаф", "qty": 160.0, "sum": 240000, "sold": 0}, {"name": "Органайзер Ящик", "qty": 160.0, "sum": 176000, "sold": 0}, {"name": "Термокружка Волна 500 мл", "qty": 160.0, "sum": 208000, "sold": 1031.0}, {"name": "Термокружка Город 400 мл", "qty": 160.0, "sum": 176000, "sold": 1034.0}, {"name": "Термокружка Камень 400 мл", "qty": 160.0, "sum": 256000, "sold": 1042.0}, {"name": "Термокружка Лес 350 мл", "qty": 160.0, "sum": 224000, "sold": 1037.0}, {"name": "Термокружка Маршрут 450 мл", "qty": 160.0, "sum": 240000, "sold": 1026.0}, {"name": "Термокружка Песок 350 мл", "qty": 160.0, "sum": 288000, "sold": 1005.0}, {"name": "Термокружка Полдень 600 мл", "qty": 160.0, "sum": 304000, "sold": 1075.0}, {"name": "Термокружка Север 350 мл", "qty": 200.0, "sum": 200000, "sold": 1063.0}, {"name": "Термокружка Туман 500 мл", "qty": 160.0, "sum": 272000, "sold": 1033.0}, {"name": "Термокружка Утро 450 мл", "qty": 160.0, "sum": 192000, "sold": 1060.0}], "cash": 7804320.0, "sales": 27211520.0, "cogs": 17007200.0, "flow": [["2026-05-15", 3000000.0, 0.0], ["2026-05-16", 0.0, 0.0], ["2026-05-17", 0.0, 0.0], ["2026-05-18", 930720.0, 0.0], ["2026-05-19", 0.0, 581700.0], ["2026-05-20", 231040.0, 0.0], ["2026-05-21", 0.0, 144400.0], ["2026-05-22", 0.0, 0.0], ["2026-05-23", 0.0, 0.0], ["2026-05-24", 0.0, 0.0], ["2026-05-25", 912480.0, 0.0], ["2026-05-26", 0.0, 570300.0], ["2026-05-27", 0.0, 0.0], ["2026-05-28", 0.0, 0.0], ["2026-05-29", 0.0, 0.0], ["2026-05-30", 0.0, 0.0], ["2026-05-31", 0.0, 0.0], ["2026-06-01", 912960.0, 0.0], ["2026-06-02", 0.0, 570600.0], ["2026-06-03", 233760.0, 0.0], ["2026-06-04", 0.0, 146100.0], ["2026-06-05", 0.0, 0.0], ["2026-06-06", 0.0, 0.0], ["2026-06-07", 0.0, 0.0], ["2026-06-08", 934880.0, 0.0], ["2026-06-09", 0.0, 584300.0], ["2026-06-10", 0.0, 0.0], ["2026-06-11", 0.0, 0.0], ["2026-06-12", 0.0, 0.0], ["2026-06-13", 0.0, 900000.0], ["2026-06-14", 0.0, 0.0], ["2026-06-15", 923040.0, 0.0], ["2026-06-16", 0.0, 576900.0], ["2026-06-17", 239680.0, 0.0], ["2026-06-18", 0.0, 149800.0], ["2026-06-19", 0.0, 0.0], ["2026-06-20", 0.0, 0.0], ["2026-06-21", 0.0, 0.0], ["2026-06-22", 915200.0, 0.0], ["2026-06-23", 0.0, 572000.0], ["2026-06-24", 0.0, 0.0], ["2026-06-25", 0.0, 0.0], ["2026-06-26", 0.0, 0.0], ["2026-06-27", 0.0, 0.0], ["2026-06-28", 0.0, 0.0], ["2026-06-29", 912000.0, 0.0], ["2026-06-30", 0.0, 570000.0], ["2026-07-01", 245440.0, 0.0], ["2026-07-02", 0.0, 153400.0], ["2026-07-03", 0.0, 0.0], ["2026-07-04", 0.0, 0.0], ["2026-07-05", 0.0, 0.0], ["2026-07-06", 947040.0, 0.0], ["2026-07-07", 0.0, 591900.0], ["2026-07-08", 0.0, 0.0], ["2026-07-09", 0.0, 0.0], ["2026-07-10", 0.0, 0.0], ["2026-07-11", 0.0, 0.0], ["2026-07-12", 0.0, 0.0], ["2026-07-13", 937760.0, 900000.0], ["2026-07-14", 0.0, 586100.0], ["2026-07-15", 245600.0, 0.0], ["2026-07-16", 0.0, 153500.0], ["2026-07-17", 0.0, 0.0], ["2026-07-18", 0.0, 0.0], ["2026-07-19", 0.0, 0.0], ["2026-07-20", 936960.0, 0.0], ["2026-07-21", 0.0, 585600.0], ["2026-07-22", 0.0, 0.0], ["2026-07-23", 0.0, 0.0], ["2026-07-24", 0.0, 0.0], ["2026-07-25", 0.0, 0.0], ["2026-07-26", 0.0, 0.0], ["2026-07-27", 942560.0, 0.0], ["2026-07-28", 0.0, 589100.0], ["2026-07-29", 239200.0, 0.0], ["2026-07-30", 0.0, 149500.0], ["2026-07-31", 0.0, 0.0], ["2026-08-01", 0.0, 0.0], ["2026-08-02", 0.0, 0.0], ["2026-08-03", 924000.0, 0.0], ["2026-08-04", 0.0, 577500.0], ["2026-08-05", 0.0, 0.0], ["2026-08-06", 0.0, 0.0], ["2026-08-07", 0.0, 0.0], ["2026-08-08", 0.0, 0.0], ["2026-08-09", 0.0, 0.0], ["2026-08-10", 925280.0, 0.0], ["2026-08-11", 0.0, 578300.0], ["2026-08-12", 245440.0, 900000.0], ["2026-08-13", 0.0, 153400.0], ["2026-08-14", 0.0, 0.0], ["2026-08-15", 0.0, 0.0], ["2026-08-16", 0.0, 0.0], ["2026-08-17", 932800.0, 0.0], ["2026-08-18", 0.0, 583000.0], ["2026-08-19", 0.0, 0.0], ["2026-08-20", 0.0, 0.0], ["2026-08-21", 0.0, 0.0], ["2026-08-22", 0.0, 0.0], ["2026-08-23", 0.0, 0.0], ["2026-08-24", 947680.0, 0.0], ["2026-08-25", 0.0, 592300.0], ["2026-08-26", 242720.0, 0.0], ["2026-08-27", 0.0, 151700.0], ["2026-08-28", 0.0, 0.0], ["2026-08-29", 0.0, 0.0], ["2026-08-30", 0.0, 0.0], ["2026-08-31", 894400.0, 0.0], ["2026-09-01", 0.0, 559000.0], ["2026-09-02", 0.0, 0.0], ["2026-09-03", 0.0, 0.0], ["2026-09-04", 0.0, 0.0], ["2026-09-05", 0.0, 0.0], ["2026-09-06", 0.0, 0.0], ["2026-09-07", 945760.0, 0.0], ["2026-09-08", 0.0, 591100.0], ["2026-09-09", 235040.0, 0.0], ["2026-09-10", 0.0, 146900.0], ["2026-09-11", 0.0, 900000.0], ["2026-09-12", 0.0, 0.0], ["2026-09-13", 0.0, 0.0], ["2026-09-14", 938080.0, 0.0], ["2026-09-15", 0.0, 586300.0], ["2026-09-16", 0.0, 0.0], ["2026-09-17", 0.0, 0.0], ["2026-09-18", 0.0, 0.0], ["2026-09-19", 0.0, 0.0], ["2026-09-20", 0.0, 0.0], ["2026-09-21", 952960.0, 0.0], ["2026-09-22", 0.0, 595600.0], ["2026-09-23", 257440.0, 0.0], ["2026-09-24", 0.0, 160900.0], ["2026-09-25", 0.0, 0.0], ["2026-09-26", 0.0, 0.0], ["2026-09-27", 0.0, 0.0], ["2026-09-28", 938880.0, 0.0], ["2026-09-29", 0.0, 586800.0], ["2026-09-30", 0.0, 0.0], ["2026-10-01", 0.0, 0.0], ["2026-10-02", 0.0, 0.0], ["2026-10-03", 0.0, 0.0], ["2026-10-04", 0.0, 0.0], ["2026-10-05", 940320.0, 0.0], ["2026-10-06", 0.0, 587700.0], ["2026-10-07", 232960.0, 0.0], ["2026-10-08", 0.0, 145600.0], ["2026-10-09", 0.0, 0.0], ["2026-10-10", 0.0, 0.0], ["2026-10-11", 0.0, 900000.0], ["2026-10-12", 936000.0, 0.0], ["2026-10-13", 0.0, 585000.0], ["2026-10-14", 0.0, 0.0], ["2026-10-15", 0.0, 0.0], ["2026-10-16", 0.0, 0.0], ["2026-10-17", 0.0, 0.0], ["2026-10-18", 0.0, 0.0], ["2026-10-19", 917280.0, 0.0], ["2026-10-20", 0.0, 573300.0], ["2026-10-21", 222400.0, 0.0], ["2026-10-22", 0.0, 139000.0], ["2026-10-23", 0.0, 0.0], ["2026-10-24", 0.0, 0.0], ["2026-10-25", 0.0, 0.0], ["2026-10-26", 907680.0, 0.0], ["2026-10-27", 0.0, 567300.0], ["2026-10-28", 0.0, 0.0], ["2026-10-29", 0.0, 0.0], ["2026-10-30", 0.0, 0.0], ["2026-10-31", 0.0, 0.0], ["2026-11-01", 0.0, 0.0], ["2026-11-02", 898880.0, 0.0], ["2026-11-03", 0.0, 561800.0], ["2026-11-04", 215520.0, 0.0], ["2026-11-05", 0.0, 134700.0], ["2026-11-06", 0.0, 0.0], ["2026-11-07", 0.0, 0.0], ["2026-11-08", 0.0, 0.0], ["2026-11-09", 919680.0, 0.0], ["2026-11-10", 0.0, 1474800.0]], "opex": 5400000.0};
+const money=n=>Math.round(n).toLocaleString('ru-RU')+' ₽';
+const screen=document.querySelector('#screen');
+const navPaths=[
+ 'M3 3h7v8H3z M14 3h7v5h-7z M3 15h7v6H3z M14 12h7v9h-7z',
+ 'M3 8l9-5 9 5v10l-9 5-9-5z M3 8l9 5 9-5 M12 13v9 M7.5 5.5l9 5',
+ 'M3 7h18v13H3z M3 7V5l15-3v5 M15 11h6v5h-6z',
+ 'M3 10v5h5l11 5V4L8 10z M8 15l2 6H6l-2-6 M8 10v5',
+ 'M3 9l2-6h14l2 6 M3 9q2 5 6 0 3 5 6 0 4 5 6 0 M5 12v9h14v-9 M10 21v-6h4v6'
+];
+const sections=['Сводка','Склад','Финансы','Маркетинг','Площадки'];
+let current=0,finance='ДДС',platform='Ozon',slow=false;
+const stock=data.stock.reduce((s,r)=>s+r.sum,0);
+const idle=data.stock.filter(r=>r.sold===0);
+const idleSum=idle.reduce((s,r)=>s+r.sum,0);
+const gross=data.sales-data.cogs,net=gross-data.opex;
+const income=data.flow.reduce((s,x)=>s+x[1],0),outgo=data.flow.reduce((s,x)=>s+x[2],0);
+const scenario={Ozon:{orders:[82,95,91,112,120,138],spend:[45,48,52,55,62,63],clicks:[2100,2400,2350,2900,3100,3400]},Wildberries:{orders:[64,72,85,78,96,104],spend:[36,37,41,40,46,48],clicks:[1640,1800,2020,1950,2400,2600]}};
+const row=(label,value)=>'<div class="row"><span>'+label+'</span><b>'+value+'</b></div>';
+const panel=(label,value)=>'<section class="panel">'+label+'<div class="big">'+value+'</div></section>';
+const chartBox=(title,unit)=>'<h2>'+title+'</h2><canvas id="plot" role="img" aria-label="'+title+'"></canvas><small>'+unit+'</small>';
+const choice=(items,selected,action)=>'<div class="choices">'+items.map((x,i)=>'<button class="'+(x===selected?'selected':'')+'" data-action="'+action+'" data-index="'+i+'">'+x+'</button>').join('')+'</div>';
+function line(groups,labels){
+ const canvas=document.querySelector('#plot');if(!canvas)return;
+ const w=canvas.clientWidth,h=130,dpr=devicePixelRatio||1;canvas.width=w*dpr;canvas.height=h*dpr;
+ const dark=document.documentElement.dataset.theme==='dark';const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);ctx.font='11px system-ui';
+ const max=Math.max(1,...groups.flatMap(g=>g.values));const ceiling=max>100?Math.ceil(max/100)*100:Math.ceil(max);
+ for(let i=0;i<3;i++){let y=12+45*i;ctx.fillStyle=dark?'#E7EEFC':'#192638';ctx.fillText((ceiling*(1-i/2)).toLocaleString('ru-RU',{maximumFractionDigits:1}),0,y+4);ctx.strokeStyle=dark?'#496075':'#d1dfe2';ctx.beginPath();ctx.moveTo(44,y);ctx.lineTo(w-4,y);ctx.stroke()}
+ for(const g of groups){ctx.beginPath();g.values.forEach((v,i)=>{const x=46+i*(w-54)/Math.max(g.values.length-1,1),y=102-v/ceiling*90;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle=g.color==='#347459'?(dark?'#DDF3EC':'#2D8687'):(dark?'#a4bbf0':'#192638');ctx.lineWidth=2.5;ctx.stroke()}
+ ctx.fillStyle=dark?'#E7EEFC':'#192638';ctx.fillText(labels[0],44,125);ctx.textAlign='right';ctx.fillText(labels.at(-1),w-4,125)
+}
+let graph=null;new MutationObserver(()=>{if(graph)line(...graph)}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+function render(){
+ graph=null;let html='<h1>'+sections[current]+'</h1>';
+ const api='<small>МойСклад · данные на 10 ноября</small>',demo='<small>Демонстрационные данные · пример за 6 месяцев</small>';
+ const groups=data.flow.reduce((a,x)=>{const k=x[0].slice(0,7);a[k]??=[0,0];a[k][0]+=x[1];a[k][1]+=x[2];return a},{});
+ if(current===0){let bal=0;html+=api+'<section class="overview-metrics" aria-label="Показатели капитала">'+[['Капитал магазина',stock+data.cash],['В товаре',stock],['В кассе',data.cash]].map(([label,n])=>'<article><span>'+label+'</span><b>'+money(n)+'</b></article>').join('')+'</section><section class="overview-chart">'+'<div class="head"><h2>Деньги в кассе</h2><select id="period" aria-label="Период графика">'+[30,90,180].map(x=>'<option '+(x===days?'selected':'')+' value="'+x+'">'+x+' дней</option>').join('')+'</select></div><canvas id="plot" aria-label="Динамика остатка денег"></canvas><small>Млн ₽ на конец дня</small></section><button data-action="idle" class="action">'+money(idleSum)+' в товарах без продаж　›</button>';const v=data.flow.map(x=>(bal+=x[1]-x[2])/1e6).slice(-days);graph=[[{values:v,color:'#347459'}],[data.flow.at(-days)[0],'10 ноя']]}
+ if(current===1){html+=api+panel('Запас по себестоимости',money(stock))+choice(['Все товары','Без продаж'],slow?'Без продаж':'Все товары','stock')+(slow?idle:data.stock).map(r=>row(r.name+'<br><small>'+r.qty+' шт. в наличии</small>',money(r.sum))).join('')}
+ if(current===2){html+=api+'<p class="dates">15 мая — 10 ноября 2026</p>'+choice(['ДДС','Прибыли и убытки'],finance,'finance');
+ if(finance==='ДДС'){html+=panel('Конечный остаток денег',money(data.cash))+row('Поступило',money(income))+row('Выплачено',money(outgo))+chartBox('Движение денег','Млн ₽ по месяцам периода')+'<p class="legend">━ Поступления　<span>━ Выплаты</span></p>';graph=[[{values:Object.values(groups).map(x=>x[0]/1e6),color:'#347459'},{values:Object.values(groups).map(x=>x[1]/1e6),color:'#907650'}],['Май','Ноябрь']]}
+ else{html+=panel('Прибыль за период',money(net))+row('Выручка',money(data.sales))+row('Себестоимость продаж',money(data.cogs))+row('Валовая прибыль',money(gross))+row('Прочие расходы и налоги',money(data.opex))+row('Доходность на 10 млн ₽',(net/1e7*100).toFixed(2).replace('.',',')+'%')}}
+ if(current===3){const values=Array.from({length:6},(_,i)=>scenario.Ozon.spend[i]+scenario.Wildberries.spend[i]);const total=values.reduce((a,b)=>a+b)*1000;const clicks=[...scenario.Ozon.clicks,...scenario.Wildberries.clicks].reduce((a,b)=>a+b);html+=demo+panel('Расходы на продвижение',money(total))+row('Переходы',clicks.toLocaleString('ru-RU'))+row('Стоимость перехода',money(total/clicks))+chartBox('Расходы на рекламу','Тысячи рублей за месяц');graph=[[{values,color:'#347459'}],['Июнь','Ноябрь']]}
+ if(current===4){let m=scenario[platform],sum=m.orders.reduce((a,b)=>a+b);html+=demo+choice(Object.keys(scenario),platform,'platform')+panel('Заказы · '+platform,sum.toLocaleString('ru-RU'))+row('Расходы на рекламу',money(m.spend.reduce((a,b)=>a+b)*1000))+chartBox('Заказы по месяцам','Количество заказов');graph=[[{values:m.orders,color:'#347459'}],['Июнь','Ноябрь']]}
+ if ([0,1,4].includes(current)) {
+   const shortcut='<div class="purchase-actions"><button data-action="purchase">План закупок</button><button data-action="simulate">Заказ с площадки</button></div>';
+   if(current===0) html+=shortcut;
+   else html=html.replace('</h1>','</h1>'+shortcut);
+ }
+ screen.innerHTML=html;
+ document.querySelector('nav').innerHTML=sections.map((name,index)=>{
+   const active=index===current;
+   return '<button data-action="nav" data-index="'+index+'" aria-current="'+(active?'page':'false')+'" class="'+(active?'on':'')+'"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="'+navPaths[index]+'"/></svg></span>'+name+'</button>';
+ }).join('');
+ if(graph)line(...graph)
+}
+window.addEventListener('dashboard-purchases',()=>{openPurchasing(false);window.scrollTo(0,0)});
+let days=180;
+const warehouseNames={main:'Основной',secondary:'Второй'};
+const policy={lead:18,buffer:4,review:7,factor:1};
+let activeStore='main', showFilter='Все', selectedSku=1, selectedMarket='Ozon', orderQty=1;
+let orders=[], nextOrder=1, notice='';
+const decimal=value=>value.toLocaleString('ru-RU',{maximumFractionDigits:1});
+function inventory(product,store){
+ const movements=orders.filter(o=>o.code===product.code && o.store===store);
+ const shipped=movements.filter(o=>o.state==='shipped').reduce((n,o)=>n+o.qty,0);
+ const reserved=movements.filter(o=>o.state==='reserved').reduce((n,o)=>n+o.qty,0);
+ const physical=product[store]-shipped;
+ return {physical,reserved,free:physical-reserved};
+}
+function demand(product,store){return product[store+'Sold']/30*policy.factor;}
+function target(rate){return Math.ceil(rate*(policy.lead+policy.buffer+policy.review));}
+function plan(product){
+ const other=activeStore==='main'?'secondary':'main';
+ const {free}=inventory(product,activeStore);
+ const rate=demand(product,activeStore), needed=target(rate), point=Math.ceil(rate*(policy.lead+policy.buffer));
+ const deficit=rate>0 && free<=point ? Math.max(0,needed-free) : 0;
+ const donor=Math.max(0,inventory(product,other).free-target(demand(product,other)));
+ const transfer=Math.min(deficit,donor), buy=deficit-transfer;
+ const excess=Math.max(0,free-needed);
+ const critical=rate>0 && free<Math.ceil(rate*policy.lead);
+ const state=!rate?'Без продаж':critical?'До поставки закончится':deficit?'Пора пополнить':excess?'Сверх цели':'Достаточно';
+ return {product,free,rate,point,needed,buy,transfer,excess,critical,state,deficit};
+}
+const settings=[
+ ['lead','Срок поставки',1,60,1,'дн.'],['buffer','Страховой запас',0,30,1,'дн.'],
+ ['review','Интервал закупок',1,30,1,'дн.'],['factor','Сценарий спроса',0.5,2,0.1,'×']
+];
+function renderPlan(){
+ const rows=purchasingProducts.map(plan).sort((a,b)=>Number(b.critical)-Number(a.critical)||b.deficit-a.deficit||b.excess*b.product.cost-a.excess*a.product.cost);
+ const amount=rows.reduce((n,r)=>n+r.buy*r.product.cost,0);
+ const internal=rows.reduce((n,r)=>n+r.transfer,0);
+ const excessValue=rows.reduce((total,r)=>total+r.excess*r.product.cost,0);
+ const hits=rows.filter(r=>showFilter==='Все'||(showFilter==='Пополнить'?r.deficit>0:showFilter==='Без продаж'?r.rate===0:r.excess>0));
+ document.getElementById('buy-result').innerHTML='<div class="proc-panel">Закупка после перемещений<b>'+money(amount)+'</b><small>Перенести с другого склада: '+internal+' шт.</small></div>'+
+ '<p class="buy-summary">Риск до поставки: '+rows.filter(r=>r.critical).length+' поз. · К пополнению: '+rows.filter(r=>r.deficit).length+' поз.</p><p class="buy-summary">Стоимость запаса сверх цели на складе: <b>'+money(excessValue)+'</b></p>'+
+ '<label class="buy-field">Отбор<select id="buy-filter">'+['Все','Пополнить','Сверх цели','Без продаж'].map(x=>'<option '+(x===showFilter?'selected':'')+'>'+x+'</option>').join('')+'</select></label>'+
+ (hits.map(r=>'<details class="buy-item"><summary><b>'+r.product.name+'</b><span class="buy-flag '+(r.critical?'alert':r.deficit?'warn':'')+'">'+r.state+'</span>　'+r.free+' шт. свободно<small>'+ (r.deficit?'Перенести '+r.transfer+' шт. · Заказать '+r.buy+' шт. ('+money(r.buy*r.product.cost)+')':'Сверх цели '+r.excess+' шт. ('+money(r.excess*r.product.cost)+')')+'</small></summary>'+
+ '<p class="buy-note">Продано за 30 дней: '+r.product[activeStore+'Sold']+' шт. Спрос по сценарию: '+decimal(r.rate)+' шт./день. Покрытие: '+(r.rate?decimal(r.free/r.rate)+' дн.':'нет оценки')+'. Порог пополнения: '+r.point+' шт. Цель: '+r.needed+' шт.</p></details>').join('')||'<p>Нет позиций по этому фильтру.</p>');
+}
+function renderSimulator(){
+ const product=purchasingProducts[selectedSku], state=inventory(product,activeStore);
+ const el=document.getElementById('order-lab');
+ el.innerHTML='<h2>Заказ с площадки</h2><p class="buy-note">Локальный сценарий FBS. Обе площадки используют общий свободный остаток выбранного склада. Изменения видны в плане закупок до перезагрузки.</p>'+
+ '<label class="buy-field">Товар<select id="sku">'+purchasingProducts.map((p,i)=>'<option value="'+i+'" '+(i===selectedSku?'selected':'')+'>'+p.name+'</option>').join('')+'</select></label>'+
+ '<div class="purchase-actions">'+['Ozon','Wildberries'].map(x=>'<button data-market="'+x+'" aria-pressed="'+(x===selectedMarket)+'">'+x+'</button>').join('')+'</div>'+
+ '<div class="buy-grid">'+[['На складе',state.physical],['В резерве',state.reserved],['Свободно',state.free]].map(([label,n])=>'<div><small>'+label+'</small><strong>'+n+' шт.</strong></div>').join('')+'</div>'+
+ '<form id="place-order"><label class="buy-field">Количество, шт.<input id="buy-qty" type="number" min="1" step="1" required value="'+orderQty+'"></label><button class="buy-submit">Зарезервировать</button></form>'+
+ '<p role="status" class="buy-note">'+notice+'</p>'+
+ orders.slice().reverse().map(o=>'<div class="buy-item"><b>'+o.market+' №'+o.id+' · '+o.qty+' шт.</b><br><small>'+warehouseNames[o.store]+' · '+purchasingProducts.find(p=>p.code===o.code).name+'</small><div>'+({reserved:'В резерве',shipped:'Отгружен',cancelled:'Отменён'})[o.state]+'</div>'+ (o.state==='reserved'?'<div class="purchase-actions"><button data-order="'+o.id+'" data-event="shipped">Отгрузить</button><button data-order="'+o.id+'" data-event="cancelled">Отменить</button></div>':'')+'</div>').join('')+
+ (orders.length?'<div class="purchase-actions"><button id="reset-sim">Сбросить сценарий</button></div>':'');
+}
+function openPurchasing(focusLab=false){
+ graph=null;
+
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+ screen.innerHTML='<div id="procurement"><h1>Закупки</h1><small>Остатки на 10 ноября · продажи с 12 октября по 10 ноября 2026</small><div class="purchase-actions">'+
+ Object.keys(warehouseNames).map(key=>'<button data-store="'+key+'" aria-pressed="'+(key===activeStore)+'">'+warehouseNames[key]+' склад</button>').join('')+
+ '</div><button class="action" id="jump-sim">Смоделировать заказ FBS　›</button><details><summary>Параметры закупки</summary>'+
+ settings.map(([key,label,min,max,step,unit])=>'<label class="buy-field">'+label+' <output id="out-'+key+'">'+decimal(policy[key])+'</output> '+unit+'<input data-policy="'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+policy[key]+'"></label>').join('')+
+ '<p class="buy-note">Спрос — средние продажи выбранного склада за 30 дней × коэффициент. При достижении порога покрываем срок поставки, страховой запас и интервал закупок. Сначала используем излишек другого склада. В пути принято 0.</p><p class="buy-note">В истории 180 дней. Коэффициент задаётся вручную. Для годовой сезонности понадобятся сопоставимые недели нескольких лет, наличие товара, акции и изменения цены.</p></details><div id="buy-result"></div><section class="scenario-box" id="order-lab"></section></div>';
+ renderPlan();renderSimulator();
+ if(focusLab) document.getElementById('order-lab').scrollIntoView();else window.scrollTo(0,0);
+}
+document.addEventListener('input',e=>{
+ if(e.target.id==='buy-qty')orderQty=Number(e.target.value);
+ const key=e.target.dataset.policy;
+ if(!key)return;
+ policy[key]=Number(e.target.value);document.getElementById('out-'+key).textContent=decimal(policy[key]);renderPlan();
+});
+document.addEventListener('change',e=>{
+ if(e.target.id==='buy-filter'){showFilter=e.target.value;renderPlan()}
+ if(e.target.id==='sku'){selectedSku=Number(e.target.value);notice='';renderSimulator()}
+});
+document.addEventListener('submit',e=>{
+ if(e.target.id!=='place-order')return;e.preventDefault();
+ const p=purchasingProducts[selectedSku],free=inventory(p,activeStore).free;
+ if(!Number.isInteger(orderQty)||orderQty<1||orderQty>free){notice='Недостаточно свободного товара или неверное количество.'}
+ else{orders.push({id:nextOrder++,code:p.code,store:activeStore,market:selectedMarket,qty:orderQty,state:'reserved'});notice='Резерв создан. Физический остаток изменится при отгрузке.'}
+ renderPlan();renderSimulator();
+});
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.store){activeStore=b.dataset.store;notice='';openPurchasing()}
+ if(b.dataset.market){selectedMarket=b.dataset.market;notice='';renderSimulator()}
+ if(b.id==='jump-sim')document.getElementById('order-lab').scrollIntoView();
+ if(b.dataset.order){const order=orders.find(o=>o.id===Number(b.dataset.order));if(!order||order.state!=='reserved')return;order.state=b.dataset.event;notice=order.state==='shipped'?'Товар списан, резерв закрыт.':'Резерв снят, товар снова доступен.';renderPlan();renderSimulator()}
+ if(b.id==='reset-sim'){orders=[];nextOrder=1;orderQty=1;notice='Восстановлен исходный снимок.';renderPlan();renderSimulator()}
+});
+
+document.addEventListener('click',event=>{const b=event.target.closest('button[data-action]');if(!b)return;const i=Number(b.dataset.index);switch(b.dataset.action){case 'purchase': openPurchasing(false);return;case 'simulate':openPurchasing(true);return;case 'nav':current=i;break;case 'idle':current=1;slow=true;break;case 'stock':slow=Boolean(i);break;case 'finance':finance=['ДДС','Прибыли и убытки'][i];break;case 'platform':platform=Object.keys(scenario)[i];break}render();window.scrollTo(0,0)});
+document.addEventListener('change',e=>{if(e.target.id==='period'){days=Number(e.target.value);render()}});
+window.addEventListener('resize',()=>{if(graph)line(...graph)});render();if(location.hash==='#purchases')openPurchasing();
+</script><style>
+#partner-link{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #d9e2d6;font-size:14px;font-weight:650;color:#194a38;text-decoration:none}#partner-link span{font-weight:400}body.partner-open main>header,body.partner-open main>nav,body.partner-open #screen,body.partner-open #partner-link{display:none}#partner-cabinet[hidden]{display:none}#partner-cabinet h2{margin-top:24px}#partner-cabinet button,#partner-cabinet .upload{font:inherit;font-weight:600;border:1px solid #bfcebf;border-radius:12px;padding:9px 12px;color:#214536;background:#fff;cursor:pointer}#partner-cabinet .primary,#partner-cabinet button[aria-pressed="true"]{color:white;background:#235641;border-color:#235641}#partner-cabinet .buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}#partner-cabinet .label{font-size:13px;color:#547163}#partner-cabinet article{border:1px solid #d6dfd4;background:#fff;border-radius:15px;padding:14px;margin:10px 0}#partner-cabinet p{line-height:1.45}#partner-cabinet a{color:#245940}#partner-cabinet .problem{color:#903b2a}#partner-cabinet .entry{border-top:1px solid #dbe3d9;padding:8px 0;overflow-wrap:anywhere}#partner-cabinet strong{overflow-wrap:anywhere}#partner-cabinet .panel b{font-size:30px;display:block}#partner-cabinet .upload{position:relative;overflow:hidden;display:inline-block}#partner-cabinet .upload input{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer}#partner-cabinet .upload:focus-within{outline:2px solid #235641}
+</style>
+<script src="partner-xlsx.js"></script>
+<script>
+(() => {
+ const cabinet=document.createElement('section');
+ cabinet.id='partner-cabinet';
+ document.querySelector('main').append(cabinet);
+ const columns=['Дата','Заказ','Площадка','Артикул','Количество','К оплате ₽'];
+ const aliases=[['Дата','Дата отгрузки'],['Заказ','Номер заказа'],['Площадка','Маркетплейс'],['Артикул','SKU'],['Количество','Кол-во'],['К оплате ₽','К оплате','Сумма к оплате']];
+ const reports=[];
+ const catalog=new Map(purchasingProducts.map(p=>[p.code,p.name]));
+ const sample=[columns,['2026-11-11','OZ-DEMO-101','Ozon','A2S-DEMO-P001',1,250],['2026-11-11','WB-DEMO-202','Wildberries','A2S-DEMO-P002',2,400]];
+ let role='partner', draft=null, notice='', loadVersion=0;
+ const statuses={review:'На проверке',confirmed:'К оплате',rejected:'Отклонён',paid:'Оплачен'};
+ const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+ const norm=value=>String(value??'').trim().toLowerCase();
+ const rub=kopecks=>(kopecks/100).toLocaleString('ru-RU',{style:'currency',currency:'RUB'});
+ const number=value=>Number(String(value??'').trim().replace(/[\s\u00a0]/g,'').replace(',','.'));
+ function dateValue(value){
+   if(/^\d{1,5}$/.test(String(value)))value=Number(value);
+   if(typeof value==='number'&&Number.isInteger(value)&&value>0&&value<100000)return new Date(Date.UTC(1899,11,30)+value*86400000).toISOString().slice(0,10);
+   let iso=String(value??'').trim().replace(/^(\d\d)\.(\d\d)\.(\d{4})$/,'$3-$2-$1');
+   if(!/^\d{4}-\d\d-\d\d$/.test(iso))return '';
+   const parsed=new Date(iso+'T00:00:00Z');
+   return Number.isFinite(+parsed)&&parsed.toISOString().slice(0,10)===iso?iso:'';
+ }
+ function prepare(matrix,name){
+   const result={name,rows:[],errors:[],total:0};
+   if(!Array.isArray(matrix)||!Array.isArray(matrix[0])){result.errors.push('В файле нет таблицы.');return result}
+   const header=matrix[0].map(norm);
+   const indexes=aliases.map(names=>header.reduce((matches,col,i)=>names.some(n=>norm(n)===col)?matches.concat(i):matches,[]));
+   indexes.forEach((matches,i)=>{if(matches.length!==1)result.errors.push('Проверьте колонку «'+columns[i]+'».')});
+   if(result.errors.length)return result;
+   const used=new Set(reports.filter(r=>r.status!=='rejected').flatMap(r=>r.rows.map(x=>x.key)));
+   matrix.slice(1).forEach((line,i)=>{
+     if(!line.some(value=>String(value??'').trim()))return;
+     const [rawDate,rawOrder,rawMarket,rawCode,rawQty,rawAmount]=indexes.map(([index])=>line[index]);
+     const date=dateValue(rawDate),order=String(rawOrder??'').trim(),code=String(rawCode??'').trim().toUpperCase();
+     const market=({'ozon':'Ozon','озон':'Ozon','wb':'Wildberries','вб':'Wildberries','wildberries':'Wildberries'})[norm(rawMarket)];
+     const qty=number(rawQty),amount=number(rawAmount),cents=Math.round(amount*100);
+     const key=JSON.stringify(['partner01',market,norm(order),code]);
+     const issues=[];
+     if(!date)issues.push('дата в формате ДД.ММ.ГГГГ или ГГГГ-ММ-ДД');
+     if(!order)issues.push('пропущен номер заказа');
+     if(!market)issues.push('неизвестная площадка');
+     if(!catalog.has(code))issues.push('артикул отсутствует в каталоге');
+     if(!Number.isSafeInteger(qty)||qty<1)issues.push('количество должно быть целым и положительным');
+     if(!String(rawAmount??'').trim()||!Number.isSafeInteger(cents)||cents<0||Math.abs(amount*100-cents)>0.00001)issues.push('проверьте сумму в рублях');
+     if(used.has(key))issues.push('повтор заказа и артикула');
+     if(issues.length){result.errors.push('Строка '+(i+2)+': '+issues.join(', '));return}
+     used.add(key);result.rows.push({date,order,market,code,qty,cents,key});result.total+=cents;
+   });
+   if(!result.rows.length&&!result.errors.length)result.errors.push('Добавьте хотя бы одну отправку.');
+   return result;
+ }
+ function rowsHtml(rows){return rows.map(x=>'<div class="entry"><strong>'+escape(x.market)+' · '+escape(x.order)+'</strong><br>'+escape(catalog.get(x.code))+' · '+escape(x.qty)+' шт.<br><small>'+escape(x.date)+' · '+escape(x.code)+' · '+rub(x.cents)+'</small></div>').join('')}
+ function action(id,label,primary=false){return '<button type="button" data-part="'+id+'" class="'+(primary?'primary':'')+'">'+label+'</button>'}
+ function reportHtml(r){
+   let controls='';
+   if(role==='owner'&&r.status==='review')controls=action('confirm-'+r.id,'Подтвердить',true)+action('reject-'+r.id,'Отклонить');
+   if(role==='owner'&&r.status==='confirmed')controls=action('pay-'+r.id,'Отметить оплату');
+   return '<article><strong>'+escape(r.name)+'</strong><p>'+statuses[r.status]+' · '+rub(r.total)+'</p><details><summary>Отправки ('+r.rows.length+')</summary>'+rowsHtml(r.rows)+'</details><div class="buttons">'+controls+'</div></article>';
+ }
+ function draw(){
+   const owner=role==='owner';
+   const debt=reports.filter(r=>r.status==='confirmed').reduce((n,r)=>n+r.total,0);
+   const paid=reports.filter(r=>r.status==='paid').reduce((n,r)=>n+r.total,0);
+   let html='<a href="#">‹ К панели демо</a><h1>Склад партнёра</h1><p class="label">Демо-роль · локальная сессия</p><div class="buttons">'+['partner','owner'].map((r,i)=>'<button data-part="'+r+'" aria-pressed="'+(r===role)+'">'+['Партнёр','Владелец'][i]+'</button>').join('')+'</div><small>Партнёр № 1 · остаток неизвестен. Отчёты содержат только отправки. Остатки двух собственных складов сохраняются.</small>';
+   if(owner)html+='<h2>Расчёты с партнёром</h2><div class="panel">Долг за подтверждённые отправки<b>'+rub(debt)+'</b><small>Отмечено оплаченным · '+rub(paid)+'</small></div>';
+   else{
+     html+='<h2>Отчёт об отправках</h2><p>Загрузите Excel за день. В графе «К оплате ₽» укажите сумму партнёру за всю строку.</p><div class="buttons"><label class="upload primary">Выбрать Excel<input aria-label="Выбрать Excel" type="file" accept=".xlsx" id="partner-file"></label>'+action('sample','Показать на примере')+'</div><a href="partner-report-example.xlsx" download="partner-report-example.xlsx">Скачать образец Excel</a>';
+     if(draft)html+='<article><strong>'+escape(draft.name)+'</strong><p>Распознано строк: '+draft.rows.length+' · '+rub(draft.total)+'</p>'+rowsHtml(draft.rows)+(draft.errors.length?'<div class="problem">'+draft.errors.map(e=>'<p>'+escape(e)+'</p>').join('')+'</div>':action('submit','Отправить на проверку',true))+'</article>';
+   }
+   if(notice)html+='<p role="status">'+escape(notice)+'</p>';
+   cabinet.innerHTML=html+'<h2>'+(owner?'Полученные отчёты':'Мои отчёты')+'</h2>'+(reports.length?reports.slice().reverse().map(reportHtml).join(''):'<p class="label">Отчётов пока нет.</p>');
+ }
+ cabinet.addEventListener('click',event=>{
+   const button=event.target.closest('[data-part]');if(!button)return;
+   const id=button.dataset.part;
+   if(id==='owner'||id==='partner'){role=id;notice='';loadVersion++}
+   else if(role==='partner'&&id==='sample'){loadVersion++;draft=prepare(sample,'Пример отчёта');notice=''}
+   else if(role==='partner'&&id==='submit'&&draft&&!draft.errors.length){reports.push({...draft,id:reports.length+1,status:'review'});draft=null;notice='Отчёт передан владельцу на проверку.'}
+   else if(role==='owner'){
+     const [op,index]=id.split('-');const r=reports.find(item=>item.id===Number(index));
+     if(r?.status==='review'&&op==='confirm')r.status='confirmed';
+     if(r?.status==='review'&&op==='reject')r.status='rejected';
+     if(r?.status==='confirmed'&&op==='pay')r.status='paid';
+   }
+   draw();
+ });
+ cabinet.addEventListener('change',async event=>{
+   const file=event.target.files?.[0];if(!file||role!=='partner')return;
+   const version=++loadVersion;draft=null;notice='Читаем таблицу…';draw();
+   try{
+     if(!/\.xlsx$/i.test(file.name))throw Error('Выберите файл .xlsx.');
+     const matrix=await window.readPartnerXlsx(file);if(version!==loadVersion)return;
+     draft=prepare(matrix,file.name);notice='';
+   }catch(error){if(version!==loadVersion)return;notice='Файл не удалось прочитать. '+error.message}
+   draw();
+ });
+ function route(){
+   const open=location.hash==='#partner';cabinet.hidden=!open;document.body.classList.toggle('partner-open',open);
+   if(open){draw();window.scrollTo(0,0)}
+ }
+ window.addEventListener('hashchange',route);route();
+})();
+</script><style>
+main nav{
+  --reflection:148 185 216;--gleam:25%;
+  background:radial-gradient(ellipse at var(--gleam) 110%,rgb(var(--reflection) / .68),transparent 68%),linear-gradient(150deg,#204959ca,#102537e6);
+  box-shadow:inset 0 1px 1px #ffffffcc,inset 0 -2px 3px #99f5ed60,0 6px 20px #102b3440;
+  -webkit-backdrop-filter:blur(10px) saturate(190%);backdrop-filter:blur(10px) saturate(190%);
+}
+main nav button{color:white;text-shadow:0 1px 3px #152936;position:relative}
+main nav button.on{color:#123746;text-shadow:none}
+main nav:before{background:linear-gradient(150deg,#fff 0%,#e9ffff 28%,#bce3ec 67%,#e6f8ff 100%);box-shadow:inset 0 1px 2px white,inset 0 -2px 3px #789caa77,0 2px 7px #122c3d55}
+@media(prefers-reduced-transparency:reduce){main nav{background:#244453;backdrop-filter:none;-webkit-backdrop-filter:none}}
+</style>
+<script>
+(()=>{
+  const dock=document.querySelector('main nav');
+  const content=document.querySelector('#screen');
+  let scheduled=false;
+  function reflect(){
+    scheduled=false;
+    const bounds=dock.getBoundingClientRect();
+    if(!bounds.height)return;
+    const center=bounds.top+bounds.height/2;
+    let nearest=Infinity, tint='148 185 216', position=25;
+    for(const element of content.querySelectorAll('canvas,.panel,.action')){
+      const rect=element.getBoundingClientRect();
+      const offset=(rect.top+rect.height/2-center)/Math.max(1,rect.height/2+130);
+      if(Math.abs(offset)>=nearest||Math.abs(offset)>1)continue;
+      nearest=Math.abs(offset);
+      tint=element.matches('canvas')?'71 192 151':element.matches('.action')?'213 167 105':'135 165 235';
+      position=50+offset*45;
+    }
+    dock.style.setProperty('--reflection',tint);
+    dock.style.setProperty('--gleam',position+'%');
+  }
+  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(reflect)}}
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule);
+  new MutationObserver(schedule).observe(content,{childList:true});
+  schedule();
+})();
+</script>
+<style>
+.glass-ready main nav,.partner-open #glass-root{display:none}
+#glass-mode{font:600 12px system-ui;border:1px solid #b9cdd5;background:#ffffffbd;color:#274859;border-radius:16px;padding:7px;max-width:100px}
+#glass-root .dashboard-bar{left:50%;right:auto;translate:-50% 0;transform:none;bottom:max(12px,env(safe-area-inset-bottom));width:min(450px,calc(100% - 14px));color:#163648;background-color:#e1f1f1ce}
+#glass-root .mode-dock{width:min(330px,calc(100% - 24px));background-color:#c9ddeaeb}
+#glass-root .mode-super-pill{background:transparent}
+#glass-root .mode-super-pill>div>div:first-child{flex:1;min-width:0;background:#dfedf1ed}
+#glass-root .dashboard-bar button{border:0;background:transparent;padding-inline:1px;min-width:0;flex:1;cursor:pointer}
+#glass-root .dashboard-bar button span{color:#263f4e;opacity:1!important;font:600 clamp(9px,2.5vw,11px)/1.2 system-ui}
+#glass-root .mode-super-pill>div>button{flex:0 0 50px}
+#glass-root .mode-super-pill>div{gap:4px}
+body{background:#eef0ee;color:#1d2825}
+main{background:#fafbf9}
+header{border-bottom:1px solid #d8ddda}
+header strong:before{display:none}
+header .badge{margin-left:auto;padding:0;color:#59675f;background:none;border:0;box-shadow:none}
+#glass-mode{font-size:11px;background:transparent;border-color:#dbe0dc;padding:4px}
+#screen>.panel{background:transparent;color:#515f58;border:0;border-radius:0;box-shadow:none;padding:0;margin:28px 0 18px}
+#screen>.panel:after{display:none}
+#screen .big{color:#182a22;letter-spacing:-.055em;font-weight:590}
+#partner-link{font-weight:550}
+.purchase-actions button,#screen select{background:#fff;border:1px solid #dce2dd;box-shadow:none;color:#30463a}
+#glass-root .dashboard-bar:not(.mode-super-pill),#glass-root .mode-super-pill>div>div:first-child{
+  background:rgba(250,252,249,.84);border:1px solid #c8d3cb;border-radius:22px;
+  box-shadow:0 3px 12px #152b2010!important;
+  backdrop-filter:blur(12px) saturate(110%)!important;-webkit-backdrop-filter:blur(12px) saturate(110%)!important;
+}
+#glass-root .dashboard-bar .glass-reflection,#glass-root .dashboard-bar .glass-top-highlight{display:none}
+#glass-root .dashboard-bar .justify-around>.absolute.z-0{
+  background:#dde8e0!important;border-radius:14px!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;
+}
+#glass-root .dashboard-bar .justify-around>.absolute.z-0>*{display:none}
+#glass-root .dashboard-bar button span{color:#31453a;font-weight:500}
+#glass-root .dashboard-bar button svg{stroke-width:1.6}
+@media(prefers-reduced-transparency:reduce){#glass-root .dashboard-bar:not(.mode-super-pill),#glass-root .mode-super-pill>div>div:first-child{background:#fafcf9;backdrop-filter:none!important}}
+:root{--ink:#192638;--teal:#2D8687;--mint:#DDF3EC;--ice:#E7EEFC;--white:#F5F9FA;--page:var(--white);--text:var(--ink);--accent:var(--teal);--soft:var(--mint);--outside:var(--ice);--surface:#fff;--line:color-mix(in srgb,var(--text) 17%,var(--page));--muted:color-mix(in srgb,var(--text) 74%,var(--page));color-scheme:light}
+:root[data-theme=dark]{--page:var(--ink);--text:var(--white);--accent:var(--mint);--outside:#101a29;--surface:#233347;--soft:#294746;color-scheme:dark}
+body{background:var(--outside);color:var(--text)}main{background:var(--page);color:var(--text)}
+main header{display:grid;grid-template-columns:1fr auto auto;gap:8px;padding:0 0 14px;border-color:var(--line)}
+.brand-logo{grid-column:1/-1;width:240px;max-width:100%;height:auto}.brand-logo.dark-logo,:root[data-theme=dark] .light-logo{display:none}:root[data-theme=dark] .dark-logo{display:block}
+header .badge{margin:0;color:var(--muted)}
+#brand-toggle,#glass-mode,#screen select,main .purchase-actions button,main .buy-submit,main input,main select,#partner-cabinet button,#partner-cabinet .upload{background:var(--surface);border:1px solid var(--line);color:var(--text);box-shadow:none;border-radius:10px}
+#brand-toggle{font:600 12px system-ui;padding:7px 10px;cursor:pointer}
+#screen>.panel,#screen .big,#partner-link,.buy-summary,.buy-note,main .row,main h1,main h2,.buy-field{color:var(--text)}
+main small,.dates,.legend,.legend span,#partner-cabinet .label,main .muted{color:var(--muted)}
+main .panel,.proc-panel,.choices,.buy-flag,.action{background:var(--soft);color:var(--text)}
+#screen>.panel{background:transparent}
+.choices button{color:var(--muted)}.choices button.selected,#partner-cabinet button[aria-pressed=true]{background:var(--surface);color:var(--text)}
+main .row,#screen>.row,#partner-link,.buy-item,.buy-grid,.scenario-box,#partner-cabinet article{border-color:var(--line)}
+#partner-cabinet article{background:var(--surface)}#partner-cabinet a{color:var(--accent)}
+#partner-cabinet .primary{background:var(--ink);color:var(--white)}:root[data-theme=dark] #partner-cabinet .primary{background:var(--mint);color:var(--ink)}
+#glass-root .dashboard-bar:not(.mode-super-pill),#glass-root .mode-super-pill>div>div:first-child{background:color-mix(in srgb,var(--page) 90%,transparent);border-color:var(--line);color:var(--text)}
+#glass-root .dashboard-bar button span,#glass-root .dashboard-bar button svg{color:var(--text)}
+#glass-root .dashboard-bar .justify-around>.absolute.z-0{background:var(--soft)!important}
+#screen button.action,#procurement button.action{background:var(--soft);color:var(--text)}
+#glass-root .dashboard-bar button span{color:var(--text)!important}
+#brand-toggle[aria-pressed=true]{background:var(--mint);color:var(--ink)}
+button,a,summary{-webkit-tap-highlight-color:transparent}
+
+@font-face{font-family:"Open Sans";src:url("fonts/open-sans.ttf") format("truetype");font-weight:300 800;font-display:swap}
+body,main button,main select,#brand-toggle,#glass-mode,#glass-root .dashboard-bar button span{font-family:"Open Sans",system-ui,sans-serif}
+.overview-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}
+.overview-metrics article,.overview-chart{border:1px solid var(--line);background:var(--surface);border-radius:12px}
+.overview-metrics article{padding:14px 12px;min-width:0}
+.overview-metrics article:first-child{grid-column:1/-1;border-top:3px solid var(--teal);padding:16px}
+.overview-metrics span,.overview-metrics b{display:block}
+.overview-metrics span{font-size:13px;color:var(--muted);margin-bottom:6px}
+.overview-metrics b{font-size:clamp(17px,4.8vw,22px);line-height:1.3;letter-spacing:-.035em;color:var(--text);font-weight:640}
+.overview-metrics article:first-child b{font-size:clamp(28px,8vw,38px)}
+.overview-chart{padding:14px 12px;margin-bottom:14px}
+.overview-chart .head{margin:0 0 14px}.overview-chart h2{margin:0;font-size:17px}
+.overview-chart select{font-size:12px}.overview-chart small{font-size:11px}
+main header{grid-template-columns:1fr auto}.brand-logo{grid-column:auto}#brand-toggle{align-self:center;font-size:11px;padding:7px} </style><div id="glass-root" role="navigation" aria-label="Разделы панели"></div><script src="glass/dock.js"></script><script src="tap-feedback.js"></script><style>.journal-link{display:block;padding:16px 0;color:var(--accent);font-size:14px}
+.journal-open #screen,.journal-open #partner-link,.journal-open .journal-link,.journal-open #glass-root,.journal-open main nav,.partner-open .journal-link{display:none!important}
+#intake-journal article{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;overflow-wrap:anywhere}
+#intake-journal a{color:var(--accent)}</style><script src="journal.js"></script><link rel="stylesheet" href="desktop-layout.css"><script src="desktop-layout.js"></script><style>#web-upload{max-width:850px;padding:24px 0 80px}
+#web-upload a{color:var(--accent)}#web-upload form{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;margin:24px 0}
+.upload-zone{display:flex;flex-direction:column;gap:18px;border:1px dashed var(--accent);border-radius:12px;padding:32px 16px;color:var(--text)}
+#web-upload button{padding:12px 20px;background:var(--teal);color:var(--white);border:0;border-radius:9px;margin-top:16px;cursor:pointer}#web-upload button:disabled{opacity:.5}
+#web-upload progress{width:100%;margin-top:20px;accent-color:var(--teal)}
+.upload-open #screen,.upload-open #partner-link,.upload-open .journal-link,.upload-open #glass-root,.upload-open main nav{display:none!important}
+@media(min-width:860px){main:has(.workspace-sidebar)>#web-upload{grid-column:2;grid-row:2}}
+</style><script src="web-upload.js"></script><style>#intake-journal article>small{display:block;margin:8px 0}
+.file-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.file-actions button,#intake-journal article>button{padding:8px 12px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;cursor:pointer}
+.file-actions button:first-child{background:var(--soft)}
+.file-table{overflow:auto;margin-top:12px}.file-table table{border-collapse:collapse;font-size:13px;width:100%}.file-table td,.file-table th{border:1px solid var(--line);padding:8px;white-space:nowrap;text-align:left}
+</style><script src="supplier-import.js"></script><script src="supplier-finance.js"></script><script src="api-keys.js"></script></html>

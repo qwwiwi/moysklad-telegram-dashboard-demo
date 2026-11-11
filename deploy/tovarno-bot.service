@@ -1,0 +1,28 @@
+[Unit]
+Description=TOVARNO Telegram demo bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tovarno
+Group=tovarno
+Environment=INTAKE_DB=/var/lib/tovarno/intake.sqlite3
+Environment=INTAKE_UPLOAD_DIR=/var/lib/tovarno/uploads
+ReadWritePaths=/var/lib/tovarno
+Environment=PUBLIC_URL=https://app.moyskladdemo.xyz/
+EnvironmentFile=/etc/tovarno/bot.env
+EnvironmentFile=/etc/tovarno/moysklad.env
+Environment=WHISPER_MODEL_PATH=/opt/tovarno/models/base
+ExecStart=/opt/tovarno/venv/bin/python /opt/tovarno/telegram_demo_bot.py
+Restart=on-failure
+RestartSec=15
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+MemoryMax=1G
+TasksMax=64
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
