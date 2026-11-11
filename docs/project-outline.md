@@ -1,39 +1,44 @@
-# Proposed delivery outline
+# Delivery outline
 
-This is an initial research outline, not an approved implementation design.
+Public README is the Russian teaching walkthrough; internal planning notes remain in English. This outline describes intended work, not a completed application.
+
+## Confirmed context
+
+- Telegram bot and Mini App for inventory turnover and financial visibility.
+- Fictional home-goods retailer; 30 products, two warehouses and 180 days of synthetic history are the proposed demo scope.
+- Original capital example: RUB 10 million, split into inventory at cost (7 million) and cash (3 million).
+- Start with reproducible, reconciled local synthetic data; connect MoySklad afterward.
+- A training server has already been rented: 4 GB RAM, 2 CPU cores, 80 GB storage. Do not publish its address. SSH access and actual available resources require verification.
+- Domain is not selected. Consider an existing subdomain or an approved purchase.
 
 ## Stages
 
-1. Confirm the demo business, reporting periods, users, currency and timezone.
-2. Inspect the designated server read-only and verify available MoySklad API access.
-3. Agree the screens, metric definitions, data model and source of operating expenses.
-4. Prepare reproducible synthetic products and documents for the explicitly selected training account.
-5. Implement the read-only synchronization path, preserving source IDs and reconciliation evidence.
-6. Adapt the Telegram dashboard starter: authenticated backend, bot, Mini App and inventory-specific tables.
-7. Verify financial arithmetic, duplicate imports, stale/missing data, returns and access rejection.
-8. Review locally with mobile screenshots and documented evidence.
-9. Deploy only after owner approval; verify HTTPS, private ingestion endpoints and backups.
+1. Confirm users, bot, reporting periods and source of operating expenses; inspect the server read-only.
+2. Agree a design and mobile screens using Hallmark and the dashboard starter.
+3. Generate deterministic, internally consistent synthetic products and document history.
+4. Implement the bot, authenticated backend, database and Mini App against the demo source.
+5. Validate turnover, slow-stock indicators, profit and return on original capital.
+6. Verify MoySklad permissions and implement server-side read-only synchronization, pagination and deduplication.
+7. Reconcile data against the account UI; populate only an explicitly selected training account if that step is authorized.
+8. Review local functionality, access tests and mobile screenshots.
+9. Choose a domain and deployment layout; deploy after owner approval, then verify HTTPS, private endpoints and backups.
+10. Publish demo screenshots, reproducible instructions and evidence through pull requests.
 
-## Evidence required
+## Acceptance evidence
 
-- Source documents reconcile with stock, sales cost and money reports.
-- Repeating synchronization does not duplicate rows.
-- Missing permissions or unavailable reports do not turn into false zero values.
+- Opening inventory + incoming movements - outgoing movements = closing inventory.
+- Cash and profit follow distinct, documented reconciliation rules.
 - Transfers do not count as sales; returns and write-offs follow explicit rules.
-- An unauthorized Telegram user cannot read the dashboard.
-- Demo data and real-account data cannot be confused.
+- Repeated synchronization does not duplicate rows.
+- Missing permissions or unavailable data do not turn into false zero values.
+- Unauthorized Telegram users cannot read the dashboard.
+- UI labels demo mode, period, data source and last update.
+- Credentials and private infrastructure information are absent from public commits.
 
 ## Open inputs
 
-- Training account API credential file location and verified report permissions.
-- Server SSH alias/address and what already runs there.
-- Bot username and credential file location.
-- Dashboard domain and the list of authorized users.
-- Expense categories, recognition policy and the demo reporting period.
+Server SSH username/alias and available authentication; bot username and token file; domain choice; authorized Telegram IDs; expense recognition policy and training account API credential file.
 
-## Session log
+## Optional later work
 
-- Downloaded upstream course skill repositories and reviewed the published second-week materials.
-- Read the official MoySklad documentation through the browser and inspected the signed-in account homepage without changes.
-- Defined an initial inventory and finance scenario with synthetic figures.
-- Created the public teaching repository. Application implementation and account seeding remain pending.
+Daily Telegram digest, configurable alerts, ABC analysis, replenishment estimates and cash planning. These are proposals outside the first-version baseline.
