@@ -84,6 +84,8 @@ def handle_voice(call, message, app_url):
         extension = ".ogg" if message.get("voice") else ".mp3"
         folder = Path(os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads"))
         folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+        from storage_limits import check_storage
+        check_storage(folder, size or _MAX_BYTES, user_id)
         path = folder / (uuid.uuid4().hex + extension)
         info = call("getFile", file_id=media["file_id"])
         call.download(info["file_path"], path)

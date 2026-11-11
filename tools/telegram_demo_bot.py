@@ -178,6 +178,12 @@ def reply_to_start(call, update, username, app_url):
                 return
             folder = Path(os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads"))
             folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+            from storage_limits import check_storage
+            try:
+                check_storage(folder, document.get("file_size", 5 * 1024 * 1024), author["id"])
+            except ValueError:
+                say("Достигнут лимит хранилища. Обратитесь к владельцу.")
+                return
             path = folder / (uuid.uuid4().hex + extension)
             info = call("getFile", file_id=document["file_id"])
             try:

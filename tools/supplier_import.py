@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from document_preview import summarize
-from seed_moysklad import Client, Seeder, SeedError, load_token, meta_ref
+from seed_moysklad import Client, Seeder, SeedError, load_token, meta_ref, NAMESPACE
 
 HEADERS = ["Дата", "Заказ", "Площадка", "Артикул", "Наименование", "Количество",
            "Закупка ₽/шт", "Продажа ₽/шт"]
@@ -121,7 +121,14 @@ def prepare(path, filename, client, mappings=None):
             "note": "Приёмка увеличит долг поставщику, отгрузка создаст задолженность покупателя. Платежи не создаются."}
 
 
-def _post_plan(client, rows, apply):
+def _order_code(date, platform, order, supplier_id=None):
+    identity = [date, normalized(platform), normalized(order)]
+    if supplier_id is not None:
+        identity.insert(0, str(supplier_id))
+    return "DIRECT-" + hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode()).hexdigest()[:24]
+
+
+def _post_plan(client, rows, apply, supplier_id=None):
     currencies = client.get_all("entity/currency")
     default = [c for c in currencies if c.get("default")]
     if len(default) != 1 or default[0].get("isoCode") != "RUB":
@@ -131,16 +138,22 @@ def _post_plan(client, rows, apply):
         raise SeedError("Для демо требуется одна организация, иначе нужно выбрать её явно")
     organization = meta_ref(organizations[0])
     seed = Seeder(client, apply=apply)
+    if supplier_id is not None:
+        legacy_codes = {_order_code(row["date"], row["platform"], row["order"]) for row in rows}
+        for kind in ("supply", "demand"):
+            existing = seed._collection(kind)
+            if any(NAMESPACE + code + "-" + kind in existing for code in legacy_codes):
+                raise SeedError("Найден заказ старого формата без поставщика. Требуется проверка владельца перед переносом, повторное проведение остановлено.")
+    supplier_scope = "-" + hashlib.sha256(str(supplier_id).encode()).hexdigest()[:16] if supplier_id is not None else ""
     store = seed.ensure("store", "DIRECT-SUPPLIER-STORE", {"name": "ТОВАРНО | Прямая отгрузка поставщика", "code": "TOVARNO-DIRECT"})
-    supplier = seed.ensure("counterparty", "DIRECT-SUPPLIER", {"name": "ТОВАРНО | Поставщик прямых отгрузок", "code": "TOVARNO-DIRECT-SUPPLIER"})
+    supplier = seed.ensure("counterparty", "DIRECT-SUPPLIER" + supplier_scope, {"name": "ТОВАРНО | Поставщик прямых отгрузок" + (" | " + str(supplier_id) if supplier_id is not None else ""), "code": "TOVARNO-DIRECT-SUPPLIER" + supplier_scope})
     buyer = seed.ensure("counterparty", "DIRECT-BUYER", {"name": "ТОВАРНО | Покупатели прямых отгрузок", "code": "TOVARNO-DIRECT-BUYER"})
     grouped = defaultdict(list)
     for row in rows:
         grouped[(row["date"], row["platform"], row["order"])].append(row)
     documents = []
     for (date, platform, order), positions in grouped.items():
-        identity = json.dumps([date, normalized(platform), normalized(order)], ensure_ascii=False)
-        code = "DIRECT-" + hashlib.sha256(identity.encode()).hexdigest()[:24]
+        code = _order_code(date, platform, order, supplier_id)
         stamp = datetime.strptime(date, "%Y-%m-%d").replace(hour=12)
         for kind, agent, price, delta in [("supply", supplier, "purchase_minor", 0), ("demand", buyer, "sale_minor", 1)]:
             fields = {"name": code + "-" + kind, "code": code + "-" + kind,
@@ -169,9 +182,20 @@ def import_file(path, filename, execute=False, journal_id=None, supplier_id=None
     lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     with (lock_dir / ".supplier-import.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        _post_plan(client, result["rows"], False)
+        db_path = Path(os.environ.get("INTAKE_DB", "/var/lib/tovarno/intake.sqlite3"))
+        if execute and journal_id is not None and db_path.is_file():
+            with sqlite3.connect(db_path) as db:
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='import_results'").fetchone():
+                    previous = db.execute("SELECT result FROM import_results WHERE journal_id=?", (journal_id,)).fetchone()
+                    if previous:
+                        stored = json.loads(previous[0])
+                        if stored.get("status") == "posted":
+                            if stored.get("rows") != result["rows"]:
+                                raise SeedError("Содержание проведённого документа изменилось. Требуется проверка владельца.")
+                            return stored
+        _post_plan(client, result["rows"], False, supplier_id)
         if execute:
-            result.update(_post_plan(client, result["rows"], True))
+            result.update(_post_plan(client, result["rows"], True, supplier_id))
             result["status"] = "posted"
             if supplier_id is not None and mappings:
                 with sqlite3.connect(os.environ.get("INTAKE_DB", "/var/lib/tovarno/intake.sqlite3")) as db:

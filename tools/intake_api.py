@@ -117,7 +117,12 @@ def receive_upload(stream, length, filename, user_id, folder, expected_hash=None
         ).fetchone()
     folder = Path(folder)
     folder.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if shutil.disk_usage(folder).free < length + MAX_UPLOAD_BYTES:
+    from storage_limits import check_storage
+    try:
+        check_storage(folder, length, user_id)
+    except ValueError:
+        raise UploadError(507, "Workspace storage quota reached") from None
+    if shutil.disk_usage(folder).free < length + 1024**3:
         raise UploadError(507, "Storage temporarily full")
     target = folder / (uuid.uuid4().hex + Path(filename).suffix.lower())
     published = False
