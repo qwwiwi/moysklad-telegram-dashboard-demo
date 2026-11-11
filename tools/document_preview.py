@@ -78,7 +78,7 @@ def _xlsx(path):
                     values[index] = value[:2000]
                     if len(value) > 2000:
                         warnings.append('Длинные ячейки сокращены до 2000 символов.')
-                if any(str(v).strip() for v in values):
+                if any(str(v).strip() for v in values) or row.find('s:c/s:f', NS) is not None:
                     rows.append(values)
                     if len(rows) > MAX_ROWS + 1:
                         rows.pop()
@@ -162,6 +162,6 @@ def summarize(path, filename):
         return {'columns': columns, 'rows': [(row + [''] * width)[:width] for row in rows[:20]],
                 'row_count': len(rows), 'sheet': sheet, 'summary': ' '.join(details),
                 'truncated': limited or len(rows) > 20, 'warnings': list(dict.fromkeys(warnings))}
-    except (OSError, zipfile.BadZipFile, ET.ParseError, KeyError, UnicodeError, csv.Error, PreviewError) as error:
+    except (OSError, zipfile.BadZipFile, ET.ParseError, KeyError, UnicodeError, csv.Error, RuntimeError, NotImplementedError, PreviewError) as error:
         message = str(error) if isinstance(error, PreviewError) else 'Не удалось прочитать таблицу. Оригинал доступен для скачивания.'
         return {**empty, 'summary': message, 'warnings': [message]}
