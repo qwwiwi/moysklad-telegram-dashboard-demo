@@ -190,6 +190,12 @@ class JournalHandler(BaseHTTPRequestHandler):
             result = receive_upload(self.rfile, length, filename, user_id,
                                     os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads"))
             self.respond(201, result)
+            import threading
+            def process():
+                from supplier_bot_flow import process_submission
+                from telegram_demo_bot import create_client
+                process_submission(create_client(self.server.bot_token), user_id, result["id"])
+            threading.Thread(target=process, daemon=True).start()
         except AuthenticationError:
             self.respond(401, {"error": "Sign in through the bot"})
         except UploadError as error:
@@ -203,7 +209,7 @@ class JournalHandler(BaseHTTPRequestHandler):
         if self.path == "/api/upload":
             self.upload()
             return
-        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people", "/api/file/preview", "/api/file/download"}:
+        if self.path not in {"/api/journal", "/api/login", "/api/session", "/api/logout", "/api/people", "/api/file/preview", "/api/file/download", "/api/import/preview", "/api/import/execute", "/api/import/status"}:
             self.respond(404, {"error": "Not found"})
             return
         try:
@@ -243,6 +249,43 @@ class JournalHandler(BaseHTTPRequestHandler):
                 return
             if user_id is None:
                 raise AuthenticationError("Invalid session")
+            if self.path.startswith("/api/import/"):
+                if user_id not in self.server.owner_ids:
+                    self.respond(403, {"error": "Owner access required"})
+                    return
+                with sqlite3.connect(db_path) as db:
+                    db.execute("CREATE TABLE IF NOT EXISTS import_results(journal_id INTEGER PRIMARY KEY,result TEXT NOT NULL)")
+                    if self.path.endswith("/status"):
+                        values = [json.loads(r[0]) for r in db.execute("SELECT result FROM import_results ORDER BY journal_id DESC")]
+                        self.respond(200, {"imports": values})
+                        return
+                    record_id = payload.get("id")
+                    if type(record_id) is not int:
+                        raise ValueError("Invalid record")
+                    row = db.execute("SELECT filename,storage_path,user_id FROM journal WHERE id=? AND kind='file'", (record_id,)).fetchone()
+                if row is None:
+                    self.respond(404, {"error": "File not found"})
+                    return
+                path = Path(row[1]).resolve()
+                folder = Path(os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads")).resolve()
+                if not path.is_relative_to(folder) or not path.is_file():
+                    raise ValueError("Invalid file")
+                from supplier_import import import_file
+                from seed_moysklad import SeedError
+                try:
+                    result = import_file(path, row[0], execute=self.path.endswith("/execute"),
+                                         journal_id=record_id, supplier_id=str(row[2]),
+                                         mappings=payload.get("mappings"))
+                except SeedError as error:
+                    self.respond(200, {"status":"needs_review","errors":[str(error)],"rows":[]})
+                    return
+                if self.path.endswith("/execute") and result.get("status") == "posted":
+                    with sqlite3.connect(db_path) as db:
+                        db.execute("INSERT INTO import_results VALUES(?,?) ON CONFLICT(journal_id) DO UPDATE SET result=excluded.result",
+                                   (record_id, json.dumps(result,ensure_ascii=False)))
+                        db.execute("UPDATE journal SET status='posted' WHERE id=?", (record_id,))
+                self.respond(200, result)
+                return
             if self.path in {"/api/file/preview", "/api/file/download"}:
                 record_id = payload.get("id")
                 if type(record_id) is not int or record_id <= 0:

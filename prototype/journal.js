@@ -37,13 +37,13 @@
         journal.append(filter);
       }
       for(const entry of data.entries){
-        const card=node("article","");card.dataset.user=String(entry.user_id);
+        const card=node("article","");card.dataset.user=String(entry.user_id);card.dataset.record=String(entry.id);card.dataset.filename=entry.filename||"";
         card.append(node("strong",entry.filename||"Текстовое сообщение"));
         card.append(node("p",(labels[entry.role]||entry.role)+" · "+(entry.alias||entry.display_name)));
         card.append(node("p","Telegram ID · "+entry.user_id));
         if(entry.alias&&entry.display_name)card.append(node("p","Имя при загрузке · "+entry.display_name));
         const date=new Date(entry.received_at);
-        card.append(node("small",date.toLocaleString("ru-RU")+" · Получено"));
+        card.append(node("small",date.toLocaleString("ru-RU")+" · "+({posted:"Проведено в МоёмСкладе",needs_review:"Требует уточнения",received:"Получено"}[entry.status]||entry.status)));
         if(entry.origin)card.append(node("p","Источник · "+entry.origin));
         if(entry.text)card.append(node("p",entry.text));
         if(entry.kind==="file"){

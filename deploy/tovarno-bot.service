@@ -11,6 +11,7 @@ Environment=INTAKE_UPLOAD_DIR=/var/lib/tovarno/uploads
 ReadWritePaths=/var/lib/tovarno
 Environment=PUBLIC_URL=https://app.moyskladdemo.xyz/
 EnvironmentFile=/etc/tovarno/bot.env
+EnvironmentFile=/etc/tovarno/moysklad.env
 ExecStart=/usr/bin/python3 /opt/tovarno/telegram_demo_bot.py
 Restart=on-failure
 RestartSec=15

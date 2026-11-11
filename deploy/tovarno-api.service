@@ -5,6 +5,7 @@ After=network-online.target
 User=tovarno
 Group=tovarno
 EnvironmentFile=/etc/tovarno/bot.env
+EnvironmentFile=/etc/tovarno/moysklad.env
 Environment=INTAKE_DB=/var/lib/tovarno/intake.sqlite3
 ExecStart=/usr/bin/python3 /opt/tovarno/intake_api.py
 Restart=on-failure

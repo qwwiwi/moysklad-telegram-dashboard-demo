@@ -125,6 +125,9 @@ def reply_to_start(call, update, username, app_url):
              caption="Ваш личный кабинет ТОВАРНО. Откройте панель, загрузите документы или посмотрите историю отправок.",
              reply_markup=main_buttons(app_url))
         return
+    from supplier_bot_flow import clarify_submission
+    if clarify_submission(call, chat_id, author["id"], text):
+        return
     if text == "Загрузить документы":
         say("Кто отправляет документы?", role_buttons())
         return
@@ -186,6 +189,9 @@ def reply_to_start(call, update, username, app_url):
         record_id = cursor.lastrowid
     say(f"Получено. Запись №{record_id} сохранена в журнале со статусом «Получено». Данные ожидают проверки перед внесением в учёт.",
         {"inline_keyboard": [[{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}]]})
+    if kind == "file":
+        from supplier_bot_flow import process_submission
+        process_submission(call, chat_id, record_id)
 
 
 def run(call, app_url):
