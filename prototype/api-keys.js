@@ -91,7 +91,7 @@
         const copy = node("button", "Скопировать ключ"); copy.type = "button";
         copy.onclick = async () => {
           try { await navigator.clipboard.writeText(value.value); copy.textContent = "Скопирован"; }
-          catch { value.type = "text"; value.focus(); value.select(); copy.textContent = "Выделен для копирования"; }
+          catch { value.focus(); value.select(); copy.textContent = "Выделен · нажмите Ctrl/Cmd+C"; }
         };
         const reveal = node("button", "Показать ключ"); reveal.type = "button";
         reveal.onclick = () => { value.type = value.type === "password" ? "text" : "password"; reveal.textContent = value.type === "password" ? "Показать ключ" : "Скрыть символы"; };

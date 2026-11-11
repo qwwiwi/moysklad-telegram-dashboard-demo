@@ -21,7 +21,7 @@ class SupplierRestTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory()
         self.db=str(Path(self.temp.name)/"intake.sqlite3")
-        self.env=patch.dict(os.environ,{"INTAKE_DB":self.db,"INTAKE_UPLOAD_DIR":self.temp.name+"/uploads"})
+        self.env=patch.dict(os.environ,{"ALLOWED_TELEGRAM_IDS":"1,2","INTAKE_DB":self.db,"INTAKE_UPLOAD_DIR":self.temp.name+"/uploads"})
         self.env.start()
         with connect() as db:
             db.execute("INSERT INTO profiles VALUES(1,'supplier')")
@@ -55,6 +55,10 @@ class SupplierRestTests(unittest.TestCase):
         return self.request("POST","/api/v1/documents",body,key,{
             "Content-Type":"application/octet-stream","X-File-Name":"invoice.csv",
             "Idempotency-Key":request_key,"X-Content-SHA256":digest or hashlib.sha256(body).hexdigest()})
+
+    def test_membership_removal_denies_an_existing_key(self):
+        with patch.dict(os.environ, {"ALLOWED_TELEGRAM_IDS":"2"}):
+            self.assertEqual(self.request("GET","/api/v1/documents")[0],401)
 
     def test_digest_storage_revocation_and_user_isolation(self):
         self.assertNotIn(self.key["key"],Path(self.db).read_bytes().decode(errors="ignore"))

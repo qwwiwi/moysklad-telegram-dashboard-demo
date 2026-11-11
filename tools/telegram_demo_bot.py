@@ -84,6 +84,17 @@ def role_buttons():
 
 def reply_to_start(call, update, username, app_url):
     """Handle private messages, retaining the old entrypoint name for callers."""
+    from access_control import is_allowed
+    actor = (update.get("callback_query") or update.get("message") or {}).get("from", {})
+    if not is_allowed(actor.get("id")):
+        callback = update.get("callback_query")
+        if callback:
+            call("answerCallbackQuery", callback_query_id=callback["id"], text="Доступ не предоставлен.", show_alert=True)
+        else:
+            chat=update.get("message",{}).get("chat",{})
+            if chat.get("type")=="private":
+                call("sendMessage",chat_id=chat["id"],text="Доступ к ТОВАРНО предоставляется владельцем.")
+        return
     callback = update.get("callback_query")
     if callback:
         call("answerCallbackQuery", callback_query_id=callback["id"])

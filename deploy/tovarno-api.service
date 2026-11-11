@@ -15,5 +15,8 @@ ProtectSystem=strict
 ProtectHome=yes
 ReadWritePaths=/var/lib/tovarno
 PrivateTmp=yes
+MemoryMax=512M
+TasksMax=64
+LimitNOFILE=4096
 [Install]
 WantedBy=multi-user.target

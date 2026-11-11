@@ -69,6 +69,9 @@ def _notice(call, chat_id, record_id, result, uploader_id):
 
 
 def _process(call, chat_id, row, mappings=None):
+    from access_control import is_allowed
+    if not is_allowed(row["user_id"]):
+        return None
     record_id = row["id"]
     with closing(connect()) as db, db:
         db.execute("CREATE TABLE IF NOT EXISTS pending_mappings(journal_id INTEGER PRIMARY KEY, mappings TEXT NOT NULL)")

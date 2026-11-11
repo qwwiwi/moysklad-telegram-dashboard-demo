@@ -1,0 +1,8 @@
+# Apply within each TOVARNO site block, after validating with caddy validate.
+header {
+    X-Frame-Options "DENY"
+    Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'"
+    Referrer-Policy "no-referrer"
+    X-Content-Type-Options "nosniff"
+    Strict-Transport-Security "max-age=31536000"
+}

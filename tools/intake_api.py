@@ -1,3 +1,4 @@
+from access_control import is_allowed
 """Authenticated, read-only Telegram intake journal endpoint."""
 import hashlib
 import hmac
@@ -15,6 +16,7 @@ import browser_auth
 import supplier_keys
 import fcntl
 import re
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote
@@ -154,9 +156,45 @@ def receive_upload(stream, length, filename, user_id, folder, expected_hash=None
             target.unlink(missing_ok=True)
 
 
+_PREVIEW_SLOTS = threading.BoundedSemaphore(2)
+_IMPORT_SLOTS = threading.BoundedSemaphore(4)
+
+
+class BoundedHTTPServer(ThreadingHTTPServer):
+    """Bound concurrent requests, including slow headers and incomplete bodies."""
+    def __init__(self, *args, **kwargs):
+        self.request_slots = threading.BoundedSemaphore(16)
+        super().__init__(*args, **kwargs)
+
+    def process_request(self, request, client_address):
+        if not self.request_slots.acquire(blocking=False):
+            try:
+                request.settimeout(2)
+                request.sendall(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\nRetry-After: 5\r\n\r\n")
+            except OSError:
+                pass
+            self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except Exception:
+            self.request_slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self.request_slots.release()
+
+
 class JournalHandler(BaseHTTPRequestHandler):
     server_version = "TovarnoJournal"
     sys_version = ""
+
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(15)
 
     def log_message(self, format, *args):
         # Request bodies, Telegram initData and credential-bearing values stay private.
@@ -186,7 +224,7 @@ class JournalHandler(BaseHTTPRequestHandler):
             cookies.load(self.headers.get("Cookie", ""))
             session = cookies.get(browser_auth.COOKIE_NAME)
             user_id = browser_auth.authenticate(session.value if session else None, self.server.db_path)
-            if user_id is None:
+            if not is_allowed(user_id):
                 raise AuthenticationError()
             if self.headers.get("Transfer-Encoding") or len(self.headers.get_all("Content-Length", [])) != 1:
                 raise UploadError(411, "Content-Length required")
@@ -200,12 +238,7 @@ class JournalHandler(BaseHTTPRequestHandler):
             result = receive_upload(self.rfile, length, filename, user_id,
                                     os.environ.get("INTAKE_UPLOAD_DIR", "/var/lib/tovarno/uploads"))
             self.respond(201, result)
-            import threading
-            def process():
-                from supplier_bot_flow import process_submission
-                from telegram_demo_bot import create_client
-                process_submission(create_client(self.server.bot_token), user_id, result["id"])
-            threading.Thread(target=process, daemon=True).start()
+            self.process_supplier_document(user_id, result["id"])
         except AuthenticationError:
             self.respond(401, {"error": "Sign in through the bot"})
         except UploadError as error:
@@ -220,17 +253,31 @@ class JournalHandler(BaseHTTPRequestHandler):
         if not authorization.startswith("Bearer "):
             raise AuthenticationError("API key required")
         identity = supplier_keys.authenticate(self.server.db_path, authorization[7:])
-        if identity is None:
+        if identity is None or not is_allowed(identity["user_id"]):
             raise AuthenticationError("Invalid API key")
         return identity
 
     def process_supplier_document(self, user_id, record_id):
-        import threading
+        if not _IMPORT_SLOTS.acquire(blocking=False):
+            with sqlite3.connect(self.server.db_path) as db:
+                db.execute("UPDATE journal SET status='needs_review',text=? WHERE id=? AND status='received'",
+                           ("Обработка занята. Проверьте документ и запустите проведение из журнала.", record_id))
+            return
+
         def process():
-            from supplier_bot_flow import process_submission
-            from telegram_demo_bot import create_client
-            process_submission(create_client(self.server.bot_token), user_id, record_id)
-        threading.Thread(target=process, daemon=True).start()
+            try:
+                from supplier_bot_flow import process_submission
+                from telegram_demo_bot import create_client
+                process_submission(create_client(self.server.bot_token), user_id, record_id)
+            finally:
+                _IMPORT_SLOTS.release()
+
+        try:
+            threading.Thread(target=process, daemon=True).start()
+        except RuntimeError:
+            _IMPORT_SLOTS.release()
+            with sqlite3.connect(self.server.db_path) as db:
+                db.execute("UPDATE journal SET status='needs_review' WHERE id=? AND status='received'", (record_id,))
 
     def supplier_upload(self):
         self.close_connection = True
@@ -358,9 +405,9 @@ class JournalHandler(BaseHTTPRequestHandler):
             user_id = (verify_init_data(payload["initData"], self.server.bot_token)
                        if payload.get("initData") else browser_auth.authenticate(value, db_path))
             if self.path == "/api/session":
-                self.respond(200, {"authenticated": user_id is not None})
+                self.respond(200, {"authenticated": is_allowed(user_id)})
                 return
-            if user_id is None:
+            if not is_allowed(user_id):
                 raise AuthenticationError("Invalid session")
             if self.path.startswith("/api/keys/"):
                 if self.path.endswith("/list"):
@@ -428,9 +475,15 @@ class JournalHandler(BaseHTTPRequestHandler):
                     if path.suffix.lower() in {".ogg",".mp3",".m4a",".wav"}:
                         self.respond(200, {"summary":"Голосовое пояснение. Расшифровка отображается в журнале.","columns":[],"rows":[],"size":path.stat().st_size})
                         return
-                    from document_preview import summarize
-                    result = summarize(path, row[1])
-                    result["size"] = path.stat().st_size
+                    if not _PREVIEW_SLOTS.acquire(blocking=False):
+                        self.respond(429, {"error": "Preview busy. Retry shortly"})
+                        return
+                    try:
+                        from document_preview import summarize
+                        result = summarize(path, row[1])
+                        result["size"] = path.stat().st_size
+                    finally:
+                        _PREVIEW_SLOTS.release()
                     self.respond(200, result)
                 else:
                     from urllib.parse import quote
@@ -492,7 +545,7 @@ def main():
         owners = {int(value.strip()) for value in os.environ.get("OWNER_TELEGRAM_IDS", "").split(",") if value.strip()}
     except ValueError:
         raise SystemExit("OWNER_TELEGRAM_IDS must contain numeric IDs") from None
-    server = ThreadingHTTPServer(("127.0.0.1", 8766), JournalHandler)
+    server = BoundedHTTPServer(("127.0.0.1", 8766), JournalHandler)
     server.public_origin = os.environ.get("PUBLIC_URL", "https://app.moyskladdemo.xyz").rstrip("/")
     server.bot_token = token
     server.db_path = os.environ.get("INTAKE_DB", "/var/lib/tovarno/intake.sqlite3")
