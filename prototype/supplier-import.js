@@ -107,7 +107,7 @@
         }
         output.append(grid);
         for (const warning of result.warnings || []) output.append(node("p", issueText(warning)));
-        const errors = result.errors || [];
+        const errors = [...(result.errors || []), ...(result.unmatched || []).map(item=>({...item,message:"Уточните товар в строке "+item.row}))];
         if (errors.length) {
           output.append(node("p", "Уточните строки файла и загрузите исправленный документ."));
           const mappingForm = node("form", "");
