@@ -1,0 +1,38 @@
+{
+  "currency": "RUB",
+  "period": {
+    "from": "2026-05-15",
+    "to": "2026-11-10",
+    "days": 180,
+    "timezone": "Europe/Moscow"
+  },
+  "product_count": 30,
+  "warehouse_count": 2,
+  "created_objects": 206,
+  "document_count": 166,
+  "checks": {
+    "inventory_cost": true,
+    "net_sales": true,
+    "net_cogs": true,
+    "gross_profit": true,
+    "cash": true,
+    "stock_by_product_and_warehouse": true
+  },
+  "amounts_minor_units": {
+    "inventory_cost": 700000000,
+    "net_sales": 2721152000,
+    "net_cogs": 1700720000,
+    "gross_profit": 1020432000,
+    "cash": 780432000
+  },
+  "slow_inventory_cost_minor_units": 232000000,
+  "management_profit_minor_units": 480432000,
+  "operating_expenses_minor_units": 540000000,
+  "repeat_dry_run_counts": {
+    "created": 0,
+    "reused": 206,
+    "planned": 0
+  },
+  "tests_passed": 19,
+  "synthetic": true
+}
