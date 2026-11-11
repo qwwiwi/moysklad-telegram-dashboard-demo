@@ -63,14 +63,34 @@ def create_client(token):
     return call
 
 
-def role_keyboard():
-    return {"keyboard": [[{"text": "Я поставщик"}, {"text": "Я сотрудник"}],
-                         [{"text": "Загрузить файл"}, {"text": "Написать отгрузку"}]],
-            "resize_keyboard": True, "is_persistent": True}
+def main_buttons(app_url):
+    return {"inline_keyboard": [
+        [{"text": "Открыть ТОВАРНО", "web_app": {"url": app_url}}],
+        [{"text": "Загрузить документы", "callback_data": "upload"}],
+        [{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}],
+    ]}
+
+
+def role_buttons():
+    return {"inline_keyboard": [
+        [{"text": "Я поставщик", "callback_data": "supplier"},
+         {"text": "Я сотрудник", "callback_data": "employee"}],
+        [{"text": "Главное меню", "callback_data": "home"}],
+    ]}
 
 
 def reply_to_start(call, update, username, app_url):
     """Handle private messages, retaining the old entrypoint name for callers."""
+    callback = update.get("callback_query")
+    if callback:
+        call("answerCallbackQuery", callback_query_id=callback["id"])
+        action = callback.get("data")
+        command = {"upload": "Загрузить документы", "supplier": "Я поставщик",
+                   "employee": "Я сотрудник", "home": "/menu"}.get(action)
+        if not command:
+            return
+        update = {"message": {**callback.get("message", {}),
+                              "from": callback["from"], "text": command}}
     message = update.get("message", {})
     chat = message.get("chat", {})
     author = message.get("from", {})
@@ -80,24 +100,28 @@ def reply_to_start(call, update, username, app_url):
     chat_id = chat["id"]
     def say(body, markup=None):
         call("sendMessage", chat_id=chat_id, text=body,
-             reply_markup=markup or role_keyboard())
-    if text.split(maxsplit=1)[:1] in [["/start"], [f"/start@{username}"]]:
-        say("ТОВАРНО. Выберите режим поставщика или сотрудника. Затем отправьте Excel, CSV, текст отгрузки или перешлите сообщение из рабочего чата.")
-        say("Ваши загрузки появятся в журнале приложения.", {
-            "inline_keyboard": [[{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}]]})
+             reply_markup=markup or main_buttons(app_url))
+    if text == "Старт" or text.split(maxsplit=1)[:1] in [["/start"], [f"/start@{username}"], ["/menu"]]:
+        if not callback:
+            call("sendMessage", chat_id=chat_id, text="ТОВАРНО — товары, финансы и документы.",
+                 reply_markup={"keyboard": [[{"text": "Старт"}]], "resize_keyboard": True, "is_persistent": True})
+        say("Откройте панель или загрузите документы. История отправок доступна в журнале.")
+        return
+    if text == "Загрузить документы":
+        say("Кто отправляет документы?", role_buttons())
         return
     roles = {"Я поставщик": "supplier", "Я сотрудник": "employee"}
     with connect() as db:
         if text in roles:
             db.execute("INSERT INTO profiles VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET role=excluded.role", (author["id"], roles[text]))
-            say("Выбран режим «" + text[3:] + "». Пришлите файл или текст отгрузки. Режим служит подписью отправителя в журнале.")
+            say("Выбран режим «" + text[3:] + "». Пришлите файл или текст отгрузки. Отправитель будет указан в журнале.")
             return
         profile = db.execute("SELECT role FROM profiles WHERE user_id=?", (author["id"],)).fetchone()
         if text in {"Загрузить файл", "Написать отгрузку"}:
             say("Прикрепите документ .xlsx или .csv до 5 МБ, либо перешлите файл из рабочего чата." if text == "Загрузить файл" else "Напишите дату отгрузки, номер заказа, артикул, количество и сумму. Можно переслать сообщение из рабочего чата.")
             return
         if not profile:
-            say("Сначала выберите режим «Я поставщик» или «Я сотрудник», затем повторно отправьте данные.")
+            say("Выберите роль, затем повторно отправьте документ или сообщение.", role_buttons())
             return
         if db.execute("SELECT id FROM journal WHERE chat_id=? AND message_id=?", (chat_id, message["message_id"])).fetchone():
             return
@@ -159,7 +183,7 @@ def run(call, app_url):
                 })
                 username = identity["username"]
                 print(f"@{username} ready.", flush=True)
-            updates = call("getUpdates", offset=offset, timeout=35, allowed_updates=["message"])
+            updates = call("getUpdates", offset=offset, timeout=35, allowed_updates=["message", "callback_query"])
             for update in updates:
                 try:
                     reply_to_start(call, update, username, app_url)
