@@ -70,6 +70,7 @@ def main_buttons(app_url):
         [{"text": "API для вашего агента", "web_app": {"url": app_url.rstrip("/") + "/#api"}}],
         [{"text": "Загрузить документы", "callback_data": "upload"}],
         [{"text": "Открыть журнал", "web_app": {"url": app_url + "#journal"}}],
+        [{"text": "Как работать с ТОВАРНО", "url": "https://docs.moyskladdemo.xyz/"}],
     ]}
 
 

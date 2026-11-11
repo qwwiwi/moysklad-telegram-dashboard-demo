@@ -69,7 +69,7 @@
     const back = node("a", "← К сводке"); back.href = "#";
     panel.append(back, node("h1", "API для агента"), node("p", "Создайте ключ, чтобы агент загружал документы от вашего имени и проверял их обработку."));
     const docs = node("a", "Документация и примеры запросов");
-    docs.href = "/api-docs.html"; docs.target = "_blank"; docs.rel = "noopener";
+    docs.href = "https://docs.moyskladdemo.xyz/api.html"; docs.target = "_blank"; docs.rel = "noopener";
     panel.append(docs);
     const notice = node("p", ""); notice.setAttribute("role", "status"); panel.append(notice);
     const form = node("form", ""); form.className = "key-create";
