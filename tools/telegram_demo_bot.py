@@ -86,13 +86,13 @@ def reply_to_start(call, update, username, app_url):
     if callback:
         call("answerCallbackQuery", callback_query_id=callback["id"])
         action = callback.get("data")
-        if action == "browser_login":
+        if action in {"browser_login", "web_upload"}:
             message = callback.get("message", {})
             chat = message.get("chat", {})
             user_id = callback.get("from", {}).get("id")
             if chat.get("type") == "private" and chat.get("id") == user_id and user_id:
                 from browser_auth import issue_link
-                url = app_url.rstrip("/") + "/#login=" + issue_link(user_id)
+                url = app_url.rstrip("/") + ("/?next=upload#login=" if action=="web_upload" else "/#login=") + issue_link(user_id)
                 call("sendMessage", chat_id=user_id, protect_content=True,
                      text="Войдите в личный кабинет. Чтобы открыть его на компьютере, скопируйте ссылку в свой браузер. Она действует 10 минут и подходит для одного входа.",
                      reply_markup={"inline_keyboard": [
@@ -135,6 +135,7 @@ def reply_to_start(call, update, username, app_url):
             db.commit()
             role_label = {"supplier": "Поставщик", "employee": "Сотрудник"}[roles[text]]
             call("sendPhoto", chat_id=chat_id, photo=app_url.rstrip("/") + "/assets/tovarno-upload.jpg",
+                 reply_markup={"inline_keyboard":[[{"text":"Загрузить большой файл на сайте","callback_data":"web_upload"}]]},
                  caption=f"Ваша роль — {role_label}. Прикрепите Excel (.xlsx) или CSV до 5 МБ. Можно написать об отгрузке текстом или переслать сообщение из рабочего чата. После приёма бот сообщит номер записи в журнале.")
             return
         profile = db.execute("SELECT role FROM profiles WHERE user_id=?", (author["id"],)).fetchone()

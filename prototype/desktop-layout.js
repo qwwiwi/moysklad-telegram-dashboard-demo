@@ -39,6 +39,7 @@
   documents.className = "workspace-documents";
   const documentLinks = [
     ["#partner", "Склад партнёра", "M3 9l9-5 9 5v11H3z M7 20v-7h10v7"],
+    ["#upload", "Загрузить документ", "M12 16V3 M7 8l5-5 5 5 M4 15v6h16v-6"],
     ["#journal", "Журнал загрузок", "M5 3h10l4 4v14H5z M14 3v5h5 M8 12h8 M8 16h6"]
   ];
   for (const [fragment, label, path] of documentLinks) {
@@ -52,7 +53,7 @@
   main.prepend(sidebar);
 
   function update() {
-    const current = ["#partner","#journal"].includes(location.hash) ? null : mobileMenu.querySelector(".on")?.dataset.index;
+    const current = ["#partner","#journal","#upload"].includes(location.hash) ? null : mobileMenu.querySelector(".on")?.dataset.index;
     for (const button of links.querySelectorAll("button")) {
       button.setAttribute("aria-current", button.dataset.section === current ? "page" : "false");
     }

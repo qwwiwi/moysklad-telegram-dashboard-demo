@@ -67,7 +67,7 @@
           token = "";
           signout.hidden = false;
           dialog.close();
-          location.replace("#journal");
+          location.replace(new URL(location.href).searchParams.get("next")==="upload"?"#upload":"#journal");
         } else if ([400,401,403,410].includes(response.status)) {
           token = "";
           confirm.hidden = true;
