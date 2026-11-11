@@ -8,7 +8,7 @@ Public README is the Russian teaching walkthrough; internal planning notes remai
 - Fictional home-goods retailer; 30 products, two warehouses and 180 days of synthetic history are the proposed demo scope.
 - Original capital example: RUB 10 million, split into inventory at cost (7 million) and cash (3 million).
 - Start with reproducible, reconciled local synthetic data; connect MoySklad afterward.
-- A training server has already been rented: 4 GB RAM, 2 CPU cores, 80 GB storage. Do not publish its address. SSH access and actual available resources require verification.
+- A training server has already been rented: 4 GB RAM, 2 CPU cores, 80 GB storage. Do not publish its address. Read-only SSH access as root was verified. Approximately 1.5 GB RAM and 66 GB disk were available at the check; Python and Docker are installed. Ports 80 and 443 are already occupied, so inspect the existing web service before any deployment.
 - Domain is not selected. Consider an existing subdomain or an approved purchase.
 
 ## Stages
@@ -37,7 +37,7 @@ Public README is the Russian teaching walkthrough; internal planning notes remai
 
 ## Open inputs
 
-Server SSH username/alias and available authentication; bot username and token file; domain choice; authorized Telegram IDs; expense recognition policy and training account API credential file.
+Existing web-service routing and deployment layout; bot username and token file; domain choice; authorized Telegram IDs; expense recognition policy and training account API credential file.
 
 ## Optional later work
 
